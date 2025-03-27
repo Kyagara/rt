@@ -20,7 +20,7 @@ pub async fn fetch_user(username: &str) -> Result<(User, HashMap<String, Emote>)
     let response: GraphQLResponse = match main::send_query(gql).await {
         Ok(response) => response,
         Err(err) => {
-            return Err(anyhow!("Failed to fetch user '{username}': {err}"));
+            return Err(anyhow!("Requesting user '{username}': {err}"));
         }
     };
 
@@ -50,7 +50,7 @@ pub async fn fetch_user(username: &str) -> Result<(User, HashMap<String, Emote>)
     let seventv_emotes = match emote::fetch_7tv_emotes(&user_id).await {
         Ok(emotes) => emotes,
         Err(err) => {
-            error!("Failed to fetch 7tv emotes: {err}");
+            error!("Fetching 7tv emotes: {err}");
             HashMap::new()
         }
     };
@@ -58,7 +58,7 @@ pub async fn fetch_user(username: &str) -> Result<(User, HashMap<String, Emote>)
     let bettertv_emotes = match emote::fetch_bettertv_emotes(&user_id).await {
         Ok(emotes) => emotes,
         Err(err) => {
-            error!("Failed to fetch bettertv emotes: {err}");
+            error!("Fetching bettertv emotes: {err}");
             HashMap::new()
         }
     };

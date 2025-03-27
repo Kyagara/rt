@@ -31,7 +31,7 @@ pub async fn get_feed(
         let rows = match sqlx::query(query).fetch_all(feeds_db).await {
             Ok(rows) => rows,
             Err(err) => {
-                return Err(format!("Failed to fetch feed: {err}"));
+                return Err(format!("Querying feed: {err}"));
             }
         };
 
@@ -68,7 +68,7 @@ pub async fn get_feed(
         let feed = query_builder
             .fetch_all(feeds_db)
             .await
-            .map_err(|err| format!("Failed to fetch feed: {err}"))?;
+            .map_err(|err| format!("Querying feed: {err}"))?;
 
         return Ok(Feed {
             youtube: Some(feed),
@@ -95,7 +95,7 @@ pub async fn refresh_feed(
         let rows = match sqlx::query(query).fetch_all(users_db).await {
             Ok(rows) => rows,
             Err(err) => {
-                return Err(format!("Failed to fetch usernames from database: {err}"));
+                return Err(format!("Querying usernames: {err}"));
             }
         };
 
@@ -109,7 +109,7 @@ pub async fn refresh_feed(
         let live_now = match twitch::stream::fetch_live_now(usernames).await {
             Ok(live_now) => live_now,
             Err(err) => {
-                return Err(format!("Failed to fetch live now: {err}"));
+                return Err(format!("Fetching live now: {err}"));
             }
         };
 
@@ -132,7 +132,7 @@ pub async fn refresh_feed(
         }
 
         if let Err(err) = app_handle.emit("updated_streams", &platform) {
-            return Err(format!("Error emitting 'updated_streams' event: {err}"));
+            return Err(format!("Emitting 'updated_streams' event: {err}"));
         }
     }
 
@@ -142,7 +142,7 @@ pub async fn refresh_feed(
         let rows = match sqlx::query(query).fetch_all(users_db).await {
             Ok(rows) => rows,
             Err(err) => {
-                return Err(format!("Failed to fetch ids from database: {err}"));
+                return Err(format!("Querying channel ids: {err}"));
             }
         };
 
@@ -156,7 +156,7 @@ pub async fn refresh_feed(
         let videos = match youtube::video::fetch_videos(channel_ids).await {
             Ok(videos) => videos,
             Err(err) => {
-                return Err(format!("Failed to fetch videos: {err}"));
+                return Err(format!("Requesting videos: {err}"));
             }
         };
 
@@ -182,7 +182,7 @@ pub async fn refresh_feed(
         }
 
         if let Err(err) = app_handle.emit("updated_videos", platform) {
-            return Err(format!("Error emitting 'updated_videos' event: {err}"));
+            return Err(format!("Emitting 'updated_videos' event: {err}"));
         }
     }
 

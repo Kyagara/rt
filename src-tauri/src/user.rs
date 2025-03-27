@@ -35,7 +35,7 @@ pub async fn get_users(
         if let Ok(users) = get_users_for_platform(users_db, platform).await {
             Ok(users)
         } else {
-            Err(format!("Failed to get users from {platform:#?}"))
+            Err(format!("Getting {platform:#?} users"))
         }
     } else {
         let mut users = Vec::new();
@@ -43,14 +43,14 @@ pub async fn get_users(
         match get_users_for_platform(users_db, Platform::YouTube).await {
             Ok(new_users) => users.extend(new_users),
             Err(err) => {
-                return Err(format!("Failed to get users from YouTube: {err}"));
+                return Err(format!("Getting YouTube users: {err}"));
             }
         }
 
         match get_users_for_platform(users_db, Platform::Twitch).await {
             Ok(new_users) => users.extend(new_users),
             Err(err) => {
-                return Err(format!("Failed to get users from Twitch: {err}"));
+                return Err(format!("Getting Twitch users: {err}"));
             }
         }
 
@@ -73,12 +73,12 @@ pub async fn add_user(
         let (user, emotes) = match twitch::user::fetch_user(&username).await {
             Ok(user) => user,
             Err(err) => {
-                return Err(format!("Failed to fetch user '{username}': {err}"));
+                return Err(format!("Fetching user '{username}': {err}"));
             }
         };
 
         if let Err(err) = twitch::emote::update_user_emotes(emotes_db, &username, emotes).await {
-            error!("Failed to save emotes for user '{username}': {err}");
+            error!("Saving emotes for user '{username}': {err}");
         }
 
         let query = "INSERT INTO twitch (id, username, avatar) VALUES (?, ?, ?) ON CONFLICT (username) DO UPDATE SET avatar = ?";
@@ -97,7 +97,7 @@ pub async fn add_user(
         let user = match youtube::channel::fetch_channel_by_name(&username).await {
             Ok(user) => user,
             Err(err) => {
-                return Err(format!("Failed to fetch user '{username}': {err}"));
+                return Err(format!("Fetching user '{username}': {err}"));
             }
         };
 
@@ -114,7 +114,7 @@ pub async fn add_user(
     }
 
     if let Err(err) = app_handle.emit("updated_users", platform) {
-        error!("Failed to emit 'updated_users' event: {err}");
+        error!("Emitting 'updated_users' event: {err}");
     }
 
     Ok(())
@@ -189,7 +189,10 @@ async fn get_users_for_platform(users_db: &Pool<Sqlite>, platform: Platform) -> 
         Platform::Twitch => "SELECT id, username, avatar FROM twitch",
     };
 
-    let rows = sqlx::query(query).fetch_all(users_db).await?;
+    let rows = sqlx::query(query)
+        .fetch_all(users_db)
+        .await
+        .expect("Querying users");
 
     let mut users: Vec<User> = Vec::with_capacity(rows.len());
 

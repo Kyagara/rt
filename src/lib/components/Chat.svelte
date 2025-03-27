@@ -2,10 +2,12 @@
 	import { onMount } from 'svelte';
 
 	import { openUrl } from '@tauri-apps/plugin-opener';
-	import { Channel, invoke } from '@tauri-apps/api/core';
+	import { Channel } from '@tauri-apps/api/core';
 	import { emit } from '@tauri-apps/api/event';
 
 	import SimpleBar from 'simplebar';
+
+	import { command } from '$lib';
 
 	let { username, toggleChat } = $props();
 
@@ -97,7 +99,7 @@
 			}
 		};
 
-		invoke('join_chat', { username, reader });
+		command('join_chat', { username, reader });
 
 		return () => {
 			emit('leave_chat', username);

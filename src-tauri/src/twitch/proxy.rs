@@ -37,14 +37,14 @@ pub async fn proxy_stream(
     let response = match PROXY_HTTP_CLIENT.get(url).send().await {
         Ok(resp) => resp,
         Err(err) => {
-            return Err(format!("Failed to proxy request: {err}"));
+            return Err(format!("Proxying request: {err}"));
         }
     };
 
     let body_bytes = match response.bytes().await {
         Ok(bytes) => bytes,
         Err(err) => {
-            return Err(format!("Failed to read response body: {err}"));
+            return Err(format!("Reading response body: {err}"));
         }
     };
 
@@ -78,7 +78,7 @@ pub async fn proxy_stream(
                     "stream",
                     "backup",
                 ) {
-                    error!("Failed to emit event: {err}");
+                    error!("Emitting change to backup stream event: {err}");
                 }
 
                 stream_state.using_backup = true;
@@ -99,7 +99,7 @@ pub async fn proxy_stream(
             match fetch_playlist_text(&backup_url).await {
                 Ok(updated_playlist) => playlist = updated_playlist,
                 Err(err) => {
-                    error!("Failed to fetch updated backup manifest: {err}");
+                    error!("Fetching updated backup manifest: {err}");
                     playlist.clear();
                 }
             }
@@ -112,13 +112,13 @@ pub async fn proxy_stream(
                 "stream",
                 "main",
             ) {
-                error!("Failed to emit event: {err}");
+                error!("Emitting change to main stream event: {err}");
             }
 
             match fetch_main_stream(username, &mut stream_state).await {
                 Ok(pl) => playlist = pl,
                 Err(err) => {
-                    error!("Failed to fetch main stream: {err}");
+                    error!("Fetching main stream: {err}");
                     playlist.clear();
                 }
             }
@@ -158,12 +158,12 @@ async fn fetch_playlist_text(url: &str) -> Result<String> {
         .get(url)
         .send()
         .await
-        .map_err(|err| anyhow!("Failed to fetch: {err}"))?;
+        .map_err(|err| anyhow!("Requesting playlist: {err}"))?;
 
     response
         .text()
         .await
-        .map_err(|err| anyhow!("Failed to read text: {err}"))
+        .map_err(|err| anyhow!("Reading playlist text: {err}"))
 }
 
 async fn fetch_main_stream(username: &str, stream_state: &mut StreamState) -> Result<String> {
@@ -189,7 +189,7 @@ async fn fetch_backup_stream_url(username: &str) -> Result<String> {
     let url = match stream::fetch_stream_playback(username, true).await {
         Ok(url) => url,
         Err(err) => {
-            return Err(anyhow!("Failed to fetch backup stream: {err}"));
+            return Err(anyhow!("Fetching backup stream: {err}"));
         }
     };
 

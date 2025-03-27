@@ -35,7 +35,7 @@ pub fn run() {
                 let urls = &args[1..];
 
                 if let Err(err) = window::open_url(app_handle, urls) {
-                    error!("Failed to open new window: {err}");
+                    error!("Opening new window: {err}");
                 };
             },
         ));
@@ -81,14 +81,14 @@ pub fn run() {
             async_runtime::block_on(async {
                 let storage_dir = app_data_dir.join("rustypipe");
                 if let Err(err) = youtube::main::build_client(&storage_dir).await {
-                    return Err(anyhow!("Failed to build youtube client: {err}"));
+                    return Err(anyhow!("Building new RustyPipe client: {err}"));
                 }
 
                 let users_db_path = app_data_dir.join("users.db");
                 let users_db = match SqlitePool::connect(users_db_path.to_str().unwrap()).await {
                     Ok(db) => db,
                     Err(err) => {
-                        return Err(anyhow!("Failed to connect to users database: {err}"));
+                        return Err(anyhow!("Connecting to 'users.db': {err}"));
                     }
                 };
 
@@ -96,7 +96,7 @@ pub fn run() {
                 let feeds_db = match SqlitePool::connect(feeds_db_path.to_str().unwrap()).await {
                     Ok(db) => db,
                     Err(err) => {
-                        return Err(anyhow!("Failed to connect to feeds database: {err}"));
+                        return Err(anyhow!("Connecting to 'feeds.db': {err}"));
                     }
                 };
 
@@ -104,7 +104,7 @@ pub fn run() {
                 let emotes_db = match SqlitePool::connect(emotes_db_path.to_str().unwrap()).await {
                     Ok(db) => db,
                     Err(err) => {
-                        return Err(anyhow!("Failed to connect to emotes database: {err}"));
+                        return Err(anyhow!("Connecting to 'emotes.db': {err}"));
                     }
                 };
 

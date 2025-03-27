@@ -80,7 +80,7 @@ pub fn open_new_window(app_handle: AppHandle, url: String) {
                 .decorations(false)
                 .build()
         {
-            error!("Error creating new window: {err}");
+            error!("Creating new window: {err}");
         }
     });
 }

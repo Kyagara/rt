@@ -2,13 +2,11 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
-	import { invoke } from '@tauri-apps/api/core';
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 
-	import { error } from '$lib/components/Notification.svelte';
 	import Grid from '$lib/components/Grid.svelte';
 
-	import { Platform, timeAgo } from '$lib';
+	import { command, Platform, timeAgo } from '$lib';
 
 	let feed = $state([]) as YouTubeVideo[];
 
@@ -32,19 +30,15 @@
 			delete req.lastPublishedAt;
 		}
 
-		const newVideos = await invoke<Feed>('get_feed', req)
-			.then((feed) => {
-				if (feed.youtube) {
-					return feed.youtube;
-				}
-				return [] as YouTubeVideo[];
-			})
-			.catch((err) => {
-				error('Error retrieving YouTube feed', err as string);
-				return [] as YouTubeVideo[];
-			});
+		const newVideos = await command<Feed>('get_feed', req).then((feed) => {
+			if (feed && feed.youtube) {
+				return feed.youtube;
+			}
 
-		if (newVideos.length === 0) {
+			return [] as YouTubeVideo[];
+		});
+
+		if (newVideos.length < 50) {
 			hasMore = false;
 		} else {
 			feed = [...feed, ...newVideos];
@@ -66,11 +60,7 @@
 	async function handleMouseWheelClick(event: MouseEvent, videoID: string) {
 		// Middle mouse button
 		if (event.button === 1) {
-			try {
-				await invoke('open_new_window', { url: `/videos/watch?id=${videoID}` });
-			} catch (err) {
-				error('Error opening new window', err as string);
-			}
+			await command('open_new_window', { url: `/videos/watch?id=${videoID}` });
 		}
 	}
 

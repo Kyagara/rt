@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { invoke } from '@tauri-apps/api/core';
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 
 	import Player from '$lib/components/Player.svelte';
 	import Chat from '$lib/components/Chat.svelte';
-	import { error, info } from '$lib/components/Notification.svelte';
+	import { notify } from '$lib/components/Notification.svelte';
 
 	import { changeView } from '$lib/state/View.svelte';
+	import { command } from '$lib';
 
 	let windowLabel = $state('');
 	let username = $state('');
@@ -40,11 +40,11 @@
 		appWebview.listen<string>('stream', (event) => {
 			switch (event.payload) {
 				case 'main':
-					info('No ads detected, switching main stream.');
+					notify('No ads detected, switching main stream.');
 					break;
 
 				case 'backup':
-					info('Found ads, switching to backup stream.');
+					notify('Found ads, switching to backup stream.');
 					break;
 			}
 		});
@@ -53,13 +53,14 @@
 		username = routeURL.searchParams.get('username')!;
 		changeView('streams', false);
 
-		try {
-			invoke<string>('fetch_stream_playback', { username, backup: false }).then((data) => {
-				url = data;
-			});
-		} catch (err) {
-			error('Stream not found', err as string);
-		}
+		command<string>('fetch_stream_playback', { username, backup: false }).then((data) => {
+			if (!data) {
+				notify('Stream not found');
+				return;
+			}
+
+			url = data;
+		});
 
 		document.addEventListener('mousemove', handleMousemove);
 		return () => {

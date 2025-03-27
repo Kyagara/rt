@@ -27,13 +27,13 @@ pub async fn fetch_videos(channel_ids: Vec<String>) -> Result<Vec<YouTubeVideo>>
 
     let results = future::join_all(futures).await;
 
-    for channel in results {
-        if channel.is_err() {
-            error!("Failed to fetch channel feed: {:?}", channel.err());
+    for result in results {
+        if let Err(err) = result {
+            error!("Fetching channel feed: {err}");
             continue;
         }
 
-        let channel = channel.unwrap();
+        let channel = result.unwrap();
 
         videos.reserve_exact(channel.videos.len());
 

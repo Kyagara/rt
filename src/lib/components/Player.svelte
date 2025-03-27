@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { invoke } from '@tauri-apps/api/core';
 	import { fetch } from '@tauri-apps/plugin-http';
 
 	import 'vidstack/bundle';
@@ -13,6 +12,8 @@
 		PlaylistLoaderContext,
 		LoaderCallbacks
 	} from 'hls.js';
+
+	import { command } from '$lib';
 
 	let { windowLabel, username, url } = $props();
 
@@ -65,12 +66,17 @@
 
 			// context.type === 'level'
 
-			invoke<string>('proxy_stream', {
+			command<string>('proxy_stream', {
 				windowLabel,
 				username,
 				url: context.url
 			})
 				.then((data) => {
+					if (!data) {
+						callbacks.onError({ code: 0, text: 'No data received' }, context, null, this.stats);
+						return;
+					}
+
 					this.stats.loaded = data.length;
 
 					const response = {

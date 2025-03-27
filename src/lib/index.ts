@@ -1,6 +1,24 @@
+import { invoke } from '@tauri-apps/api/core';
+import { error as logError } from '@tauri-apps/plugin-log';
+
+import { notify } from './components/Notification.svelte';
+
 export enum Platform {
 	Twitch = 'twitch',
 	YouTube = 'youtube'
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function command<T>(command: string, data?: any): Promise<T | null> {
+	return await invoke<T>(command, data)
+		.then((res) => {
+			return res;
+		})
+		.catch((err) => {
+			notify(`Error executing '${command}' command`);
+			logError(`Invoking '${command}'`, err);
+			return null;
+		});
 }
 
 export function getAvatarUrl(avatar: number[]) {

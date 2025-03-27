@@ -2,13 +2,11 @@
 	import { page } from '$app/stores';
 	import { fade } from 'svelte/transition';
 
-	import { invoke } from '@tauri-apps/api/core';
-
-	import { error, info } from './Notification.svelte';
+	import { notify } from './Notification.svelte';
 
 	import { currentView, changeView } from '$lib/state/View.svelte';
 
-	import { Platform } from '$lib';
+	import { command, Platform } from '$lib';
 
 	let path = $state($page.url.pathname);
 
@@ -18,24 +16,14 @@
 		loading = true;
 
 		const platform = currentView.id === 'streams' ? Platform.Twitch : Platform.YouTube;
-
-		try {
-			await invoke('refresh_feed', { platform });
-		} catch (err) {
-			error(`Error refreshing ${platform} feed`, err as string);
-			return;
-		}
+		await command('refresh_feed', { platform });
 
 		loading = false;
-		info('Refreshed feed');
+		notify('Refreshed feed');
 	}
 
 	async function openNewWindow() {
-		try {
-			await invoke('open_new_window', { url: `/${currentView.id}` });
-		} catch (err) {
-			error('Error opening new window', err as string);
-		}
+		await command('open_new_window', { url: `/${currentView.id}` });
 	}
 
 	$effect(() => {

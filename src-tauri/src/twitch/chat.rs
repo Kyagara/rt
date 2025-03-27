@@ -86,16 +86,16 @@ pub async fn join_chat(
     let mut ws_stream = match tokio_tungstenite::connect_async(WS_CHAT_URL).await {
         Ok((ws_stream, _)) => ws_stream,
         Err(err) => {
-            return Err(format!("Failed to connect to chat: {err}"));
+            return Err(format!("Connecting to chat: {err}"));
         }
     };
 
     if let Err(err) = ws_stream.send("CAP REQ :twitch.tv/tags".into()).await {
-        return Err(format!("Failed to send CAP REQ: {err}"));
+        return Err(format!("Sending CAP REQ: {err}"));
     }
 
     if let Err(err) = ws_stream.send("PASS SCHMOOPIIE".into()).await {
-        return Err(format!("Failed to send PASS: {err}"));
+        return Err(format!("Sending PASS: {err}"));
     }
 
     let random_number = util::random_number(10_000, 99_999);
@@ -104,11 +104,11 @@ pub async fn join_chat(
         .send(format!("NICK justinfan{random_number}").into())
         .await
     {
-        return Err(format!("Failed to send NICK: {err}"));
+        return Err(format!("Sending NICK: {err}"));
     }
 
     if let Err(err) = ws_stream.send(format!("JOIN #{username}").into()).await {
-        return Err(format!("Failed to send JOIN: {err}"));
+        return Err(format!("Sending JOIN: {err}"));
     }
 
     let (ws_sink, mut ws_stream) = ws_stream.split();
@@ -132,7 +132,7 @@ pub async fn join_chat(
             let ws_sink = Arc::clone(&ws_sink);
 
             if let Err(err) = ws_sink.lock().await.send(Message::text(PONG)).await {
-                error!("Failed to send PONG: {err}");
+                error!("Sending PONG: {err}");
                 continue;
             }
 
@@ -142,7 +142,7 @@ pub async fn join_chat(
                 sleep(Duration::from_secs(60));
 
                 if let Err(err) = ws_sink.lock().await.send(PING.into()).await {
-                    error!("Failed to send scheduled PING: {err}");
+                    error!("Sending scheduled PING: {err}");
                 }
             });
 
@@ -191,7 +191,7 @@ pub async fn join_chat(
             };
 
             if let Err(err) = reader.send(ChatEvent::Message(chat_message)) {
-                error!("Failed to send chat message: {err}");
+                error!("Sending chat message: {err}");
             }
         }
     }

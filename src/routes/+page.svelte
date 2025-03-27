@@ -3,8 +3,9 @@
 
 	import { getCurrent } from '@tauri-apps/plugin-deep-link';
 
+	import { notify } from '$lib/components/Notification.svelte';
+
 	import { changeView } from '$lib/state/View.svelte';
-	import { error } from '$lib/components/Notification.svelte';
 
 	const twitchReg = /(?:https?:\/\/)?(?:www\.)?twitch\.tv\/([a-zA-Z0-9_]+)/;
 	const youtubeReg =
@@ -12,14 +13,14 @@
 
 	async function handleURL(url: string) {
 		if (!url) {
-			error('No URL provided', '');
+			notify('No URL provided');
 			return;
 		}
 
 		if (url.startsWith('rt://tw/') || url.startsWith('rt://twitch/')) {
 			const username = url.replace(/^rt:\/\/(tw|twitch)\//, '').trim();
 			if (!username) {
-				error('Username was empty when opening via URL', url);
+				notify('Username not found in URL');
 				return;
 			}
 
@@ -38,7 +39,7 @@
 		if (url.startsWith('rt://yt/') || url.startsWith('rt://youtube/')) {
 			const videoId = url.replace(/^rt:\/\/(yt|youtube)\//, '').trim();
 			if (!videoId) {
-				error('Video ID was empty when opening via URL', url);
+				notify('Video ID not found in URL');
 				return;
 			}
 
@@ -54,7 +55,7 @@
 			return;
 		}
 
-		error('No matching URL found', url);
+		notify('Could not retrieve frontend from URL');
 	}
 
 	onMount(async () => {
@@ -66,7 +67,7 @@
 				changeView(localStorage.getItem('lastView') || 'videos');
 			}
 		} catch (err) {
-			error('Error handling URL', err as string);
+			notify(`Error handling URL: ${err}`);
 		}
 	});
 </script>

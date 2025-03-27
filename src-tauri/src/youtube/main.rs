@@ -43,12 +43,12 @@ pub async fn import_subscriptions(
 ) -> Result<i64, String> {
     let mut file = match File::open(subscriptions_file_path) {
         Ok(file) => file,
-        Err(err) => return Err(format!("Failed to open subscriptions file: {err}")),
+        Err(err) => return Err(format!("Opening subscriptions file: {err}")),
     };
 
     let mut contents = String::new();
     if let Err(err) = file.read_to_string(&mut contents) {
-        return Err(format!("Failed to read subscriptions file: {err}"));
+        return Err(format!("Reading subscriptions file: {err}"));
     }
 
     let mut lines = contents.lines();
@@ -78,7 +78,7 @@ pub async fn import_subscriptions(
     let rows = sqlx::query(query)
         .fetch_all(users_db)
         .await
-        .map_err(|err| format!("Failed to query channel ids: {err}"))?;
+        .map_err(|err| format!("Querying channel ids: {err}"))?;
 
     let mut saved_channel_ids = Vec::with_capacity(rows.len());
 
@@ -91,27 +91,27 @@ pub async fn import_subscriptions(
 
     let mut channels_imported = 0;
 
-    for channel_id in imported_channel_ids {
-        match channel::fetch_channel_by_id(&channel_id).await {
-            Ok(user) => {
-                channels_imported += 1;
+    let new_channels = match channel::fetch_channels_by_id(imported_channel_ids).await {
+        Ok(channels) => channels,
+        Err(err) => {
+            return Err(format!("Fetching channels: {err}"));
+        }
+    };
 
-                let query = "INSERT INTO youtube (id, username, avatar) VALUES (?, ?, ?) ON CONFLICT (username) DO UPDATE SET avatar = ?";
+    for channel in new_channels {
+        channels_imported += 1;
 
-                if let Err(err) = sqlx::query(query)
-                    .bind(&user.id)
-                    .bind(&user.username)
-                    .bind(&user.avatar)
-                    .bind(&user.avatar)
-                    .execute(users_db)
-                    .await
-                {
-                    error!("Failed to save channel '{channel_id}': {err}");
-                }
-            }
-            Err(err) => {
-                error!("Failed to import channel '{channel_id}': {err}");
-            }
+        let query = "INSERT INTO youtube (id, username, avatar) VALUES (?, ?, ?) ON CONFLICT (username) DO UPDATE SET avatar = ?";
+
+        if let Err(err) = sqlx::query(query)
+            .bind(&channel.id)
+            .bind(&channel.username)
+            .bind(&channel.avatar)
+            .bind(&channel.avatar)
+            .execute(users_db)
+            .await
+        {
+            error!("Saving channel '{}': {err}", channel.username);
         }
     }
 

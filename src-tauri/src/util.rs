@@ -16,6 +16,7 @@ pub fn random_number(start: u32, end: u32) -> u32 {
 
 pub async fn download_image(url: &str) -> Result<Vec<u8>> {
     if url.is_empty() {
+        error!("Failed to download image: url is empty");
         return Ok(Vec::new());
     }
 
@@ -26,7 +27,7 @@ pub async fn download_image(url: &str) -> Result<Vec<u8>> {
         return Ok(Vec::new());
     }
 
-    let bytes = response.bytes().await?;
+    let bytes = response.bytes().await.expect("Failed to get image bytes");
 
     Ok(bytes.to_vec())
 }

@@ -2,14 +2,11 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
-	import { invoke } from '@tauri-apps/api/core';
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 
-	import { error } from '$lib/components/Notification.svelte';
 	import Grid from '$lib/components/Grid.svelte';
 
-	import { streamingFor } from '$lib';
-	import { Platform } from '$lib';
+	import { command, streamingFor, Platform } from '$lib';
 
 	let feed = $state([]) as LiveNow[];
 
@@ -18,13 +15,11 @@
 	async function updateView() {
 		loading = true;
 
-		try {
-			await invoke<Feed>('get_feed', { platform: Platform.Twitch }).then((data) => {
+		await command<Feed>('get_feed', { platform: Platform.Twitch }).then((data) => {
+			if (data && data.twitch) {
 				feed = data.twitch!.sort((a, b) => a.username.localeCompare(b.username));
-			});
-		} catch (err) {
-			error('Error retrieving Twitch feed', err as string);
-		}
+			}
+		});
 
 		loading = false;
 	}
@@ -32,11 +27,7 @@
 	async function handleMouseWheelClick(event: MouseEvent, username: string) {
 		// Middle mouse button
 		if (event.button === 1) {
-			try {
-				await invoke('open_new_window', { url: `/streams/watch?username=${username}` });
-			} catch (err) {
-				error('Error opening new window', err as string);
-			}
+			await command('open_new_window', { url: `/streams/watch?username=${username}` });
 		}
 	}
 

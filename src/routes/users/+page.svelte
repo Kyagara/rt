@@ -1,15 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { invoke } from '@tauri-apps/api/core';
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 	import { open } from '@tauri-apps/plugin-dialog';
 
-	import { error, info } from '$lib/components/Notification.svelte';
+	import { notify } from '$lib/components/Notification.svelte';
 	import Grid from '$lib/components/Grid.svelte';
 
-	import { getAvatarUrl } from '$lib';
-	import { Platform } from '$lib';
+	import { command, getAvatarUrl, Platform } from '$lib';
 
 	let users = $state([]) as User[];
 	let loading = $state(false);
@@ -21,41 +19,26 @@
 		loading = true;
 
 		if (!username) {
-			info('No username provided');
+			notify('No username provided');
 			return;
 		}
 
-		try {
-			await invoke('add_user', { username, platform: filter });
-		} catch (err) {
-			error(`Error adding user '${username}'`, err as string);
-			return;
-		}
+		await command('add_user', { username, platform: filter });
 
 		loading = false;
-		info(`Added '${username}'`);
+		notify(`Added '${username}'`);
 	}
 
 	async function updateUser(username: string, platform: Platform) {
-		try {
-			await invoke('add_user', { username, platform });
-		} catch (err) {
-			error(`Error updating user '${username}'`, err as string);
-			return;
-		}
-
-		info(`Updated '${username}'`);
+		loading = true;
+		await command('add_user', { username, platform });
+		loading = false;
+		notify(`Updated '${username}'`);
 	}
 
 	async function removeUser(username: string, platform: Platform) {
-		try {
-			await invoke('remove_user', { username, platform });
-		} catch (err) {
-			error(`Error removing user '${username}'`, err as string);
-			return;
-		}
-
-		info(`Removed '${username}'`);
+		await command('remove_user', { username, platform });
+		notify(`Removed '${username}'`);
 	}
 
 	async function importSubscriptions() {
@@ -65,26 +48,24 @@
 			filters: [{ name: 'CSV', extensions: ['csv'] }]
 		});
 
-		try {
-			const data = await invoke<number>('import_subscriptions', { subscriptionsFilePath });
-
-			info(`Imported ${data} subscriptions`);
-		} catch (err) {
-			error('Error importing subscriptions', err as string);
+		if (!subscriptionsFilePath) {
+			notify('No file selected');
 			return;
 		}
+
+		await command<number>('import_subscriptions', { subscriptionsFilePath }).then((data) => {
+			if (!data) return;
+			notify(`Imported ${data} subscriptions`);
+		});
 
 		await updateView();
 	}
 
 	async function updateView() {
-		try {
-			await invoke<User[]>('get_users').then((data) => {
-				users = data.sort((a, b) => a.username.localeCompare(b.username));
-			});
-		} catch (err) {
-			error('Error retrieving users', err as string);
-		}
+		await command<User[]>('get_users').then((data) => {
+			if (!data) return;
+			users = data.sort((a, b) => a.username.localeCompare(b.username));
+		});
 	}
 
 	onMount(async () => {

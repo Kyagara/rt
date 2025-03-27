@@ -19,6 +19,10 @@ pub struct LiveNow {
 }
 
 pub async fn fetch_live_now(usernames: Vec<String>) -> Result<HashMap<String, LiveNow>> {
+    if usernames.is_empty() {
+        return Err(anyhow!("No usernames provided"));
+    }
+
     let mut query: Vec<UseLiveQuery> = Vec::new();
 
     for username in usernames {
@@ -32,7 +36,7 @@ pub async fn fetch_live_now(usernames: Vec<String>) -> Result<HashMap<String, Li
     let response: Vec<UseLiveResponse> = match main::send_query(query).await {
         Ok(data) => data,
         Err(err) => {
-            return Err(anyhow!("Failed to fetch UseLive: {err}"));
+            return Err(anyhow!("Requesting UseLive: {err}"));
         }
     };
 
@@ -68,13 +72,11 @@ pub async fn fetch_stream_playback(username: &str, backup: bool) -> Result<Strin
     let response: GraphQLResponse = match main::send_query(gql).await {
         Ok(response) => response,
         Err(err) => {
-            return Err(format!("Failed to fetch stream info: {err}"));
+            return Err(format!("Requesting stream playback: {err}"));
         }
     };
 
-    let Some(stream_playback) = response.data.stream_playback_access_token else {
-        return Err(String::from("No stream playback access token found"));
-    };
+    let stream_playback = response.data.stream_playback_access_token.unwrap();
 
     let signature = stream_playback.signature;
     let value = stream_playback.value;
