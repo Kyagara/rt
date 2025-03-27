@@ -20,6 +20,7 @@ pub struct Feed {
 pub async fn get_feed(
     state: State<'_, Mutex<AppState>>,
     platform: Platform,
+    last_published_at: Option<i64>,
 ) -> Result<Feed, String> {
     let state = state.lock().await;
     let feeds_db = state.feeds_db.as_ref().unwrap();
@@ -52,28 +53,22 @@ pub async fn get_feed(
     }
 
     if platform == Platform::YouTube {
-        let query = "SELECT id, username, title, published_at, view_count FROM youtube";
-
-        let rows = match sqlx::query(query).fetch_all(feeds_db).await {
-            Ok(rows) => rows,
-            Err(err) => {
-                return Err(format!("Failed to fetch feed: {err}"));
-            }
+        let query = if last_published_at.is_some() {
+            "SELECT id, username, title, published_at, view_count FROM youtube WHERE published_at < ? ORDER BY published_at DESC LIMIT 50"
+        } else {
+            "SELECT id, username, title, published_at, view_count FROM youtube ORDER BY published_at DESC LIMIT 50"
         };
 
-        let mut feed: Vec<YouTubeVideo> = Vec::new();
+        let mut query_builder = sqlx::query_as::<_, YouTubeVideo>(query);
 
-        for row in rows {
-            let video = YouTubeVideo {
-                id: row.try_get("id").map_err(|e| e.to_string())?,
-                username: row.try_get("username").map_err(|e| e.to_string())?,
-                title: row.try_get("title").map_err(|e| e.to_string())?,
-                publish_date: row.try_get("published_at").map_err(|e| e.to_string())?,
-                view_count: row.try_get("view_count").map_err(|e| e.to_string())?,
-            };
-
-            feed.push(video);
+        if let Some(last) = last_published_at {
+            query_builder = query_builder.bind(last);
         }
+
+        let feed = query_builder
+            .fetch_all(feeds_db)
+            .await
+            .map_err(|err| format!("Failed to fetch feed: {err}"))?;
 
         return Ok(Feed {
             youtube: Some(feed),
@@ -179,7 +174,7 @@ pub async fn refresh_feed(
                 .bind(&video.id)
                 .bind(&video.username)
                 .bind(&video.title)
-                .bind(&video.publish_date)
+                .bind(video.published_at)
                 .bind(video.view_count)
                 .execute(feeds_db)
                 .await

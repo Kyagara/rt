@@ -9,9 +9,9 @@ export function getAvatarUrl(avatar: number[]) {
 	return URL.createObjectURL(blob);
 }
 
-export function timeAgo(timestamp: string) {
+export function timeAgo(timestamp: number) {
 	const now = Math.floor(Date.now() / 1000);
-	const secondsAgo = now - Number(timestamp);
+	const secondsAgo = now - timestamp;
 
 	if (secondsAgo < 60) return `${secondsAgo} second${plural(secondsAgo)} ago`;
 	const minutesAgo = Math.floor(secondsAgo / 60);

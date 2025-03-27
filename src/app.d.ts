@@ -20,7 +20,7 @@ declare global {
 		id: string;
 		username: string;
 		title: string;
-		publish_date: string;
+		published_at: number;
 		view_count: string;
 	};
 

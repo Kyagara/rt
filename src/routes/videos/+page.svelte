@@ -13,21 +13,54 @@
 	let feed = $state([]) as YouTubeVideo[];
 
 	let loading = $state(false);
+	let last_published_at = $state(0);
+	let hasMore = $state(true);
+	let loader = $state() as HTMLDivElement;
 
-	async function updateView() {
+	async function fetchMore() {
+		if (loading || !hasMore) return;
 		loading = true;
 
-		try {
-			await invoke<Feed>('get_feed', { platform: Platform.YouTube }).then((data) => {
-				feed = data.youtube!.sort((a, b) => {
-					return Number(b.publish_date) - Number(a.publish_date);
-				});
+		const req: { platform: Platform; lastPublishedAt?: number } = {
+			platform: Platform.YouTube,
+			lastPublishedAt: last_published_at
+		};
+
+		if (feed.length) {
+			req.lastPublishedAt = feed[feed.length - 1].published_at;
+		} else {
+			delete req.lastPublishedAt;
+		}
+
+		const newVideos = await invoke<Feed>('get_feed', req)
+			.then((feed) => {
+				if (feed.youtube) {
+					return feed.youtube;
+				}
+				return [] as YouTubeVideo[];
+			})
+			.catch((err) => {
+				error('Error retrieving YouTube feed', err as string);
+				return [] as YouTubeVideo[];
 			});
-		} catch (err) {
-			error('Error retrieving YouTube feed', err as string);
+
+		if (newVideos.length === 0) {
+			hasMore = false;
+		} else {
+			feed = [...feed, ...newVideos];
 		}
 
 		loading = false;
+	}
+
+	function getViewCount(viewCount: string) {
+		const num = Number(viewCount).toLocaleString();
+
+		if (!num || num === '0') {
+			return '';
+		}
+
+		return `- ${num} views`;
 	}
 
 	async function handleMouseWheelClick(event: MouseEvent, videoID: string) {
@@ -41,17 +74,36 @@
 		}
 	}
 
-	onMount(async () => {
+	onMount(() => {
+		fetchMore();
+
 		const appWebview = getCurrentWebviewWindow();
 		appWebview.listen<string>('updated_videos', async () => {
-			await updateView();
+			last_published_at = 0;
+			hasMore = true;
+			await fetchMore();
 		});
 
-		await updateView();
+		const observer = new IntersectionObserver(
+			async (entries) => {
+				if (entries[0].isIntersecting) {
+					await fetchMore();
+				}
+			},
+			{ root: null, threshold: 1.0 }
+		);
+
+		if (loader) {
+			observer.observe(loader);
+		}
+
+		return () => {
+			observer.disconnect();
+		};
 	});
 </script>
 
-<div data-simplebar class="flex h-full w-full p-2">
+<div data-simplebar data-simplebar-auto-hide="false" class="flex h-full w-full p-2">
 	{#if !loading && feed.length === 0}
 		<span class="text-lg font-medium">No videos found</span>
 	{:else}
@@ -67,20 +119,20 @@
 						alt={`Video thumbnail for ${video.id}`}
 					/>
 
-					<div class="flex flex-col p-1">
+					<div class="flex flex-col gap-1 p-1">
 						<span title={video.title} class="text-md font-semibold text-pretty">
 							{video.title}
 						</span>
 
 						<span class="pb-2 text-xs">
 							{video.username}
-							{video.view_count ? `- ${video.view_count} views` : ''} - {timeAgo(
-								video.publish_date
-							)}
+							{getViewCount(video.view_count)} - {timeAgo(video.published_at)}
 						</span>
 					</div>
 				</button>
 			{/each}
 		</Grid>
 	{/if}
+
+	<div bind:this={loader}></div>
 </div>

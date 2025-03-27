@@ -100,7 +100,7 @@
 	<hr class="w-full border-gray-600" />
 
 	<div class="flex h-full w-full flex-col items-center">
-		{#if currentView.id === 'streams' || currentView.id === 'videos'}
+		{#if (currentView.id === 'streams' || currentView.id === 'videos') && !path.includes('watch')}
 			<button
 				aria-label="Refresh"
 				title="Refresh"

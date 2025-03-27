@@ -108,7 +108,7 @@ The backend uses a PersistedQuery for the feed and a custom query to the Twitch 
   - Add YouTube channel page with video search.
   - Allow downloading videos and thumbnails.
   - Subscribe to channel from watch page.
-  - Add pagination to videos list.
+  - Search for videos in the feed.
 - Twitch:
   - If possible, use a persisted query to retrieve stream playback.
   - It seems there are issues with the `avif` format in emotes in Linux, maybe use `webp` or `png` instead.

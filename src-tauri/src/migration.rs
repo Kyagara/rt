@@ -22,10 +22,11 @@ pub fn users_migrations() -> Vec<Migration> {
 }
 
 pub fn feeds_migrations() -> Vec<Migration> {
-    vec![Migration {
-        version: 1,
-        description: "create_feeds_table",
-        sql: r"
+    vec![
+        Migration {
+            version: 1,
+            description: "create_feeds_table",
+            sql: r"
                 CREATE TABLE IF NOT EXISTS twitch (
                     username TEXT NOT NULL PRIMARY KEY,
                     started_at TEXT
@@ -39,8 +40,36 @@ pub fn feeds_migrations() -> Vec<Migration> {
                     view_count TEXT
                 );
             ",
-        kind: MigrationKind::Up,
-    }]
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "youtube_published_integer_conversion",
+            sql: r"
+                PRAGMA foreign_keys=off;
+
+                ALTER TABLE youtube RENAME TO old_youtube;
+
+                CREATE TABLE youtube (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    username TEXT NOT NULL,
+                    title TEXT,
+                    published_at INTEGER,
+                    view_count TEXT
+                );
+
+                INSERT INTO youtube (id, username, title, published_at, view_count)
+                    SELECT id, username, title, CAST(published_at AS INTEGER), view_count
+                    FROM old_youtube;
+
+                CREATE INDEX idx_published_at ON youtube (published_at);
+
+                DROP TABLE old_youtube;
+                PRAGMA foreign_keys=on;
+            ",
+            kind: MigrationKind::Up,
+        },
+    ]
 }
 
 pub fn emotes_migrations() -> Vec<Migration> {
