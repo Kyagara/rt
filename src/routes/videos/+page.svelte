@@ -107,6 +107,7 @@
 					<img
 						src={`https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`}
 						alt={`Video thumbnail for ${video.id}`}
+						class="min-h-[110px] object-contain"
 					/>
 
 					<div class="flex flex-col gap-1 p-1">
