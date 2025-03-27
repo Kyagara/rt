@@ -110,7 +110,6 @@ The backend uses a PersistedQuery for the feed and a custom query to the Twitch 
   - Subscribe to channel from watch page.
   - Search for videos in the feed.
 - Twitch:
-  - If possible, use a persisted query to retrieve stream playback.
   - It seems there are issues with the `avif` format in emotes in Linux, maybe use `webp` or `png` instead.
   - Put the seek bar at the end when joining a stream, currently it is some seconds behind when first joining.
   - Add global Twitch emotes.

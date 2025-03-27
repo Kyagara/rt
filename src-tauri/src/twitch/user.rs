@@ -9,15 +9,15 @@ use crate::{
 };
 
 use super::{
-    emote::{self, Emote, TWITCH_EMOTES_CDN},
+    emote::{self, Emote},
     main,
-    query::{GraphQLQuery, GraphQLResponse},
+    query::{TurboAndSubUpsellQuery, TurboAndSubUpsellResponse},
 };
 
 pub async fn fetch_user(username: &str) -> Result<(User, HashMap<String, Emote>)> {
-    let gql = GraphQLQuery::full_user(username);
+    let gql = TurboAndSubUpsellQuery::new(username);
 
-    let response: GraphQLResponse = match main::send_query(gql).await {
+    let response: TurboAndSubUpsellResponse = match main::send_query(gql).await {
         Ok(response) => response,
         Err(err) => {
             return Err(anyhow!("Requesting user '{username}': {err}"));
@@ -28,24 +28,9 @@ pub async fn fetch_user(username: &str) -> Result<(User, HashMap<String, Emote>)
         return Err(anyhow!("User '{username}' not found"));
     };
 
-    let mut user_emotes: HashMap<String, Emote> = HashMap::new();
-    for product in user.subscription_products.unwrap() {
-        for emote in product.emotes {
-            let name = emote.token;
-            let url = format!("{TWITCH_EMOTES_CDN}/{}/default/dark/1.0", emote.id);
+    let mut user_emotes = emote::parse_subscription_products(user.subscription_products);
 
-            let emote = Emote {
-                name: name.clone(),
-                url,
-                width: 28,
-                height: 28,
-            };
-
-            user_emotes.insert(name, emote);
-        }
-    }
-
-    let user_id = user.id.unwrap();
+    let user_id = user.id;
 
     let seventv_emotes = match emote::fetch_7tv_emotes(&user_id).await {
         Ok(emotes) => emotes,
@@ -66,7 +51,7 @@ pub async fn fetch_user(username: &str) -> Result<(User, HashMap<String, Emote>)
     user_emotes.extend(seventv_emotes);
     user_emotes.extend(bettertv_emotes);
 
-    let avatar = util::download_image(&user.profile_image_url.unwrap_or_default()).await?;
+    let avatar = util::download_image(&user.profile_image_url).await?;
 
     let user = User {
         id: user_id,

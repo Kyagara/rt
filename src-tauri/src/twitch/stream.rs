@@ -7,7 +7,7 @@ use crate::util;
 
 use super::{
     main,
-    query::{GraphQLQuery, GraphQLResponse, UseLiveQuery, UseLiveResponse},
+    query::{PlaybackAccessTokenQuery, PlaybackAccessTokenResponse, UseLiveQuery, UseLiveResponse},
 };
 
 const USHER_API: &str = "https://usher.ttvnw.net/api/channel/hls";
@@ -67,21 +67,23 @@ pub async fn fetch_stream_playback(username: &str, backup: bool) -> Result<Strin
         return Err(String::from("No username provided"));
     }
 
-    let gql = GraphQLQuery::playback_query(username, backup);
+    let gql = PlaybackAccessTokenQuery::new(username, backup);
 
-    let response: GraphQLResponse = match main::send_query(gql).await {
+    let response: PlaybackAccessTokenResponse = match main::send_query(gql).await {
         Ok(response) => response,
         Err(err) => {
             return Err(format!("Requesting stream playback: {err}"));
         }
     };
 
-    let stream_playback = response.data.stream_playback_access_token.unwrap();
+    let stream_playback = response.data.stream_playback_access_token;
 
-    let signature = stream_playback.signature;
-    let value = stream_playback.value;
-
-    let url = playlist_url(username, backup, &signature, &value);
+    let url = playlist_url(
+        username,
+        backup,
+        &stream_playback.signature,
+        &stream_playback.value,
+    );
 
     Ok(url)
 }

@@ -5,9 +5,9 @@ use anyhow::{anyhow, Context, Result};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sqlx::{Pool, Row, Sqlite};
 
-use super::main::HTTP_CLIENT;
+use super::{main::HTTP_CLIENT, query::TurboAndSubUpsellSubscriptionProduct};
 
-pub const TWITCH_EMOTES_CDN: &str = "https://static-cdn.jtvnw.net/emoticons/v2";
+const TWITCH_EMOTES_CDN: &str = "https://static-cdn.jtvnw.net/emoticons/v2";
 const SEVENTV_API: &str = "https://7tv.io/v3";
 const BETTERTV_API: &str = "https://api.betterttv.net/3";
 
@@ -99,6 +99,31 @@ pub async fn update_user_emotes(
 
     tx.commit().await?;
     Ok(())
+}
+
+pub fn parse_subscription_products(
+    subscription_products: Vec<TurboAndSubUpsellSubscriptionProduct>,
+) -> HashMap<String, Emote> {
+    let mut user_emotes: HashMap<String, Emote> =
+        HashMap::with_capacity(subscription_products.len());
+
+    for product in subscription_products {
+        for emote in product.emotes {
+            let name = emote.token;
+            let url = format!("{TWITCH_EMOTES_CDN}/{}/default/dark/1.0", emote.id);
+
+            let emote = Emote {
+                name: name.clone(),
+                url,
+                width: 28,
+                height: 28,
+            };
+
+            user_emotes.insert(name, emote);
+        }
+    }
+
+    user_emotes
 }
 
 #[derive(Deserialize)]

@@ -1,126 +1,64 @@
 use serde::{Deserialize, Serialize};
 
+const TURBO_AND_SUB_UPSELL_QUERY_HASH: &str =
+    "5dbca380e47e37808c89479f51f789990ec653428a01b76c649ebe01afb3aa7e";
+
 const USE_LIVE_QUERY_HASH: &str =
     "639d5f11bfb8bf3053b424d9ef650d04c4ebb7d94711d644afb08fe9a0fad5d9";
 
-/// Main query struct used throughout the app.
-///
-/// I've thought a lot about how to make requests to the API, I believe that the amount of operations using persisted queries
-/// would outweigh the benefits of the using them (less overhead when parsing on the server side).
-///
-/// For now, until a better method is found, I will be doing it this way.
 #[derive(Serialize)]
-pub struct GraphQLQuery {
-    query: String,
+pub struct TurboAndSubUpsellQuery {
+    #[serde(rename = "operationName")]
+    operation_name: String,
+    variables: ChannelLoginVariable,
+    extensions: QueryExtensions,
 }
 
-impl GraphQLQuery {
-    pub fn full_user(username: &str) -> Self {
-        let gql = format!(
-            r#"{{
-                user(login: "{username}") {{
-                    id
-                    profileImageURL(width: 50)
-                    stream {{
-                        title
-                        viewersCount
-                        createdAt
-                        game {{
-                            id
-                            name
-                        }}
-                    }}
-                    subscriptionProducts {{
-                        emotes {{
-                            id
-                            token
-                        }}
-                    }}
-                }}
-            }}"#
-        );
-
+impl TurboAndSubUpsellQuery {
+    pub fn new(channel_login: &str) -> Self {
         Self {
-            query: gql.trim().to_string(),
-        }
-    }
-
-    /// Used to retrieve playback access token for a stream.
-    pub fn playback_query(username: &str, backup_stream: bool) -> Self {
-        let platform = if backup_stream { "ios" } else { "web" };
-        let player_type = if backup_stream { "autoplay" } else { "site" };
-
-        let gql = format!(
-            r#"{{
-                streamPlaybackAccessToken(
-                    channelName: "{username}",
-                    params: {{
-                        platform: "{platform}",
-                        playerBackend: "mediaplayer",
-                        playerType: "{player_type}",
-                    }}
-                )
-                {{
-                    value
-                    signature
-                }}
-            }}"#
-        );
-
-        Self {
-            query: gql.trim().to_string(),
+            operation_name: String::from("TurboAndSubUpsell"),
+            variables: ChannelLoginVariable {
+                channel_login: channel_login.to_string(),
+            },
+            extensions: QueryExtensions::new(TURBO_AND_SUB_UPSELL_QUERY_HASH),
         }
     }
 }
 
-// Most fields here are optional because this struct is used in different queries,
-// not having them optional would cause issues when deserializing the response.
-
 #[derive(Deserialize)]
-pub struct GraphQLResponse {
-    pub data: GraphQLResponseData,
+pub struct TurboAndSubUpsellResponse {
+    pub data: TurboAndSubUpsellData,
 }
 
 #[derive(Deserialize)]
-pub struct GraphQLResponseData {
-    pub user: Option<GraphQLResponseUser>,
-    #[serde(
-        rename = "streamPlaybackAccessToken",
-        skip_serializing_if = "Option::is_none"
-    )]
-    pub stream_playback_access_token: Option<StreamPlaybackAccessToken>,
+pub struct TurboAndSubUpsellData {
+    pub user: Option<TurboAndSubUpsellUser>,
 }
 
 #[derive(Deserialize)]
-pub struct GraphQLResponseUser {
-    pub id: Option<String>,
+pub struct TurboAndSubUpsellUser {
+    pub id: String,
     #[serde(rename = "profileImageURL")]
-    pub profile_image_url: Option<String>,
+    pub profile_image_url: String,
     #[serde(rename = "subscriptionProducts")]
-    pub subscription_products: Option<Vec<SubscriptionProduct>>,
+    pub subscription_products: Vec<TurboAndSubUpsellSubscriptionProduct>,
 }
 
 #[derive(Deserialize)]
-pub struct SubscriptionProduct {
-    pub emotes: Vec<GraphQLResponseEmote>,
+pub struct TurboAndSubUpsellSubscriptionProduct {
+    pub emotes: Vec<TurboAndSubUpsellEmote>,
 }
 
 #[derive(Deserialize)]
-pub struct StreamPlaybackAccessToken {
-    pub value: String,
-    pub signature: String,
-}
-
-#[derive(Deserialize)]
-pub struct GraphQLResponseEmote {
+pub struct TurboAndSubUpsellEmote {
     pub id: String,
     pub token: String,
 }
 
-// Persistent queries and their responses.
-
-// I don't plan on querying the stream info when refreshing users, so this query is really good for this.
-
+/// For fetching the if the user is streaming
+///
+/// I don't plan on querying the stream info when refreshing users, so this query is really good for this
 #[derive(Serialize)]
 pub struct UseLiveQuery {
     #[serde(rename = "operationName")]
@@ -129,25 +67,13 @@ pub struct UseLiveQuery {
     extensions: QueryExtensions,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct ChannelLoginVariable {
-    #[serde(rename = "channelLogin")]
-    channel_login: String,
-}
-
-impl ChannelLoginVariable {
-    pub fn new(channel_login: &str) -> Self {
-        Self {
-            channel_login: channel_login.to_string(),
-        }
-    }
-}
-
 impl UseLiveQuery {
     pub fn new(channel_login: &str) -> Self {
         Self {
             operation_name: String::from("UseLive"),
-            variables: ChannelLoginVariable::new(channel_login),
+            variables: ChannelLoginVariable {
+                channel_login: channel_login.to_string(),
+            },
             extensions: QueryExtensions::new(USE_LIVE_QUERY_HASH),
         }
     }
@@ -155,29 +81,100 @@ impl UseLiveQuery {
 
 #[derive(Deserialize)]
 pub struct UseLiveResponse {
-    pub data: UseLiveResponseData,
+    pub data: UseLiveData,
 }
 
 #[derive(Deserialize)]
-pub struct UseLiveResponseData {
-    pub user: UseLiveResponseUser,
+pub struct UseLiveData {
+    pub user: UseLiveUser,
 }
 
 #[derive(Deserialize)]
-pub struct UseLiveResponseUser {
+pub struct UseLiveUser {
     pub login: String,
-    pub stream: Option<UseLiveResponseStream>,
+    // If none, the user is not streaming
+    pub stream: Option<UseLiveStream>,
 }
 
 #[derive(Deserialize)]
-pub struct UseLiveResponseStream {
+pub struct UseLiveStream {
     #[serde(rename = "createdAt")]
     pub created_at: String,
 }
 
-// Every persistent query has these fields
+/// For fetching the stream playback access token
+#[derive(Serialize)]
+pub struct PlaybackAccessTokenQuery {
+    #[serde(rename = "operationName")]
+    operation_name: String,
+    query: String,
+    variables: PlaybackAccessTokenQueryVariables,
+}
+
+impl PlaybackAccessTokenQuery {
+    pub fn new(login: &str, backup: bool) -> Self {
+        let player_type = if backup { "autoplay" } else { "site" };
+        let platform = if backup { "ios" } else { "web" };
+
+        let query = "query PlaybackAccessToken_Template($login: String!, $isLive: Boolean!, $vodID: ID!, $isVod: Boolean!, $playerType: String!, $platform: String!) {  streamPlaybackAccessToken(channelName: $login, params: {platform: $platform, playerBackend: \"mediaplayer\", playerType: $playerType}) @include(if: $isLive) {    value    signature   authorization { isForbidden forbiddenReasonCode }   __typename  }  videoPlaybackAccessToken(id: $vodID, params: {platform: $platform, playerBackend: \"mediaplayer\", playerType: $playerType}) @include(if: $isVod) {    value    signature   __typename  }}";
+
+        Self {
+            operation_name: String::from("PlaybackAccessToken_Template"),
+            query: query.to_string(),
+            variables: PlaybackAccessTokenQueryVariables {
+                login: login.to_string(),
+                is_live: true,
+                is_vod: false,
+                vod_id: String::new(),
+                player_type: player_type.to_string(),
+                platform: platform.to_string(),
+            },
+        }
+    }
+}
+
+#[derive(Serialize)]
+pub struct PlaybackAccessTokenQueryVariables {
+    login: String,
+    #[serde(rename = "isLive")]
+    is_live: bool,
+    #[serde(rename = "isVod")]
+    is_vod: bool,
+    #[serde(rename = "vodID")]
+    vod_id: String,
+    #[serde(rename = "playerType")]
+    player_type: String,
+    platform: String,
+}
+
+#[derive(Deserialize)]
+pub struct PlaybackAccessTokenResponse {
+    pub data: PlaybackAccessTokenData,
+}
+
+#[derive(Deserialize)]
+pub struct PlaybackAccessTokenData {
+    #[serde(rename = "streamPlaybackAccessToken")]
+    pub stream_playback_access_token: PlaybackAccessToken,
+}
+
+#[derive(Deserialize)]
+pub struct PlaybackAccessToken {
+    pub value: String,
+    pub signature: String,
+}
+
+// Some queries have this variable
 
 #[derive(Serialize, Deserialize)]
+pub struct ChannelLoginVariable {
+    #[serde(rename = "channelLogin")]
+    channel_login: String,
+}
+
+// Every persistent query has these fields
+
+#[derive(Serialize)]
 pub struct QueryExtensions {
     #[serde(rename = "persistedQuery")]
     persisted_query: PersistedQuery,
@@ -194,7 +191,7 @@ impl QueryExtensions {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub struct PersistedQuery {
     version: u64,
     #[serde(rename = "sha256Hash")]
