@@ -16,8 +16,9 @@
         "width": 1280,
         "height": 720,
         "theme": "Dark",
-        "shadow": false,
-        "decorations": false
+        "shadow": true,
+        "decorations": false,
+        "backgroundColor": "#000000"
       }
     ],
     "security": {

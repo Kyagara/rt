@@ -27,10 +27,11 @@ A Twitch and YouTube frontend written in Rust using Tauri and SvelteKit.
 
 ## Features
 
+- Import YouTube subscriptions.
 - Add users to your stream and video feeds.
 - Watch content in any of the available resolutions.
 - View Twitch chat with 7tv and BetterTTV emotes.
-- Ad blocking.
+- Block ads.
 - Open videos or streams directly in the app using `rt:://` URLs.
 
 ## Download
@@ -86,7 +87,7 @@ Logs:
 
 Using the excellent [RustyPipe](https://crates.io/crates/rustypipe) library to interact with YouTube.
 
-The feed uses the faster YouTube's rss feed to retrieve videos to avoid rate limits, this sadly does not contain video duration.
+The feed uses YouTube's rss feed to retrieve videos to avoid rate limits, this sadly does not contain video duration.
 
 The player uses Vidstack's YouTube [provider](https://vidstack.io/docs/player/api/providers/youtube/) to play videos via embeds, this has the drawbacks of not being able to play videos that disallows embedding and not being able to select a video quality.
 
@@ -94,14 +95,12 @@ The player uses Vidstack's YouTube [provider](https://vidstack.io/docs/player/ap
 
 The player uses a custom [hls.js](https://github.com/video-dev/hls.js/) loader that communicates with the backend to modify the streams m3u8 manifests, this is what allows for ad blocking as the backend can detect ads and switch to a backup stream until ads are over, this was inspired on [TwitchAdSolutions](https://github.com/pixeltris/TwitchAdSolutions) method of switching streams.
 
-The backend uses a PersistedQuery for the feed and a custom query to the Twitch API to retrieve user data and stream playback.
+The backend uses queries from the Twitch API to retrieve user data and stream playback.
 
 ## TODO
 
 - Update screenshots.
 - Add information about the content somewhere in the watch page.
-- Maybe cache users/emotes/feeds in the AppState, also maybe return them when possible in the same request instead of emitting an update event.
-- More logging and better errors.
 - Maybe make a custom player layout using tailwind.
 - YouTube:
   - Maybe move from youtube embed to using RustyPipe's botguard and retrieve video URLs using it.

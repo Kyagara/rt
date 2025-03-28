@@ -4,6 +4,7 @@ use log::{error, info};
 use regex::Regex;
 use tauri::{
     async_runtime::{self, Mutex},
+    window::Color,
     AppHandle, Theme, WebviewUrl, WebviewWindowBuilder,
 };
 
@@ -75,9 +76,12 @@ pub fn open_new_window(app_handle: AppHandle, url: String) {
 
         if let Err(err) =
             WebviewWindowBuilder::new(&app_handle, format!("rt-{window_id}"), webview_url)
+                .title("rt")
                 .theme(Some(Theme::Dark))
-                .shadow(false)
+                .shadow(true)
+                .inner_size(800.0, 600.0)
                 .decorations(false)
+                .background_color(Color(0, 0, 0, 1))
                 .build()
         {
             error!("Creating new window: {err}");

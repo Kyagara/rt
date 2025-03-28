@@ -45,18 +45,6 @@ pub fn run() {
 
     builder = builder
         .plugin(
-            tauri_plugin_sql::Builder::new()
-                .add_migrations("sqlite:users.db", migration::users_migrations())
-                .add_migrations("sqlite:feeds.db", migration::feeds_migrations())
-                .add_migrations("sqlite:emotes.db", migration::emotes_migrations())
-                .build(),
-        )
-        .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_http::init())
-        .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_window_state::Builder::new().build())
-        .plugin(
             tauri_plugin_log::Builder::new()
                 .level(LevelFilter::Debug)
                 .level_for("rustls", LevelFilter::Off)
@@ -69,6 +57,22 @@ pub fn run() {
                 )
                 .build(),
         )
+        .plugin(
+            tauri_plugin_sql::Builder::new()
+                .add_migrations("sqlite:users.db", migration::users_migrations())
+                .add_migrations("sqlite:feeds.db", migration::feeds_migrations())
+                .add_migrations("sqlite:emotes.db", migration::emotes_migrations())
+                .build(),
+        )
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_filter(|window_label| window_label == "main")
+                .build(),
+        )
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_deep_link::init())
         .setup(|app| {
             #[cfg(desktop)]
             app.deep_link().register("rt")?;
