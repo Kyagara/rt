@@ -23,22 +23,26 @@
 			return;
 		}
 
-		await command('add_user', { username, platform: filter });
+		await command('add_user', { username, platform: filter }).then(() => {
+			notify(`Added '${username}'`);
+		});
 
 		loading = false;
-		notify(`Added '${username}'`);
 	}
 
 	async function updateUser(username: string, platform: Platform) {
 		loading = true;
-		await command('add_user', { username, platform });
+		await command('add_user', { username, platform }).then(() => {
+			notify(`Updated '${username}'`);
+		});
+
 		loading = false;
-		notify(`Updated '${username}'`);
 	}
 
 	async function removeUser(username: string, platform: Platform) {
-		await command('remove_user', { username, platform });
-		notify(`Removed '${username}'`);
+		await command('remove_user', { username, platform }).then(() => {
+			notify(`Removed '${username}'`);
+		});
 	}
 
 	async function importSubscriptions() {
@@ -53,12 +57,12 @@
 			return;
 		}
 
-		await command<number>('import_subscriptions', { subscriptionsFilePath }).then((data) => {
+		await command<number>('import_subscriptions', { subscriptionsFilePath }).then(async (data) => {
 			if (!data) return;
 			notify(`Imported ${data} subscriptions`);
-		});
 
-		await updateView();
+			await updateView();
+		});
 	}
 
 	async function updateView() {
@@ -131,7 +135,7 @@
 							/>
 
 							<div class="flex w-full flex-col items-center justify-between">
-								<span class="text-lg font-medium">{user.username}</span>
+								<span title={user.id} class="text-lg font-medium">{user.username}</span>
 
 								<div class="flex w-full">
 									<button

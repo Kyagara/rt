@@ -10,15 +10,13 @@ export enum Platform {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function command<T>(command: string, data?: any): Promise<T | null> {
-	return await invoke<T>(command, data)
-		.then((res) => {
-			return res;
-		})
-		.catch((err) => {
-			notify(`Error executing '${command}' command`);
-			logError(`Invoking '${command}'`, err);
-			return null;
-		});
+	try {
+		return await invoke<T>(command, data);
+	} catch (err) {
+		notify(`Error executing '${command}' command`);
+		logError(`Invoking '${command}': ${err}`);
+		throw null;
+	}
 }
 
 export function getAvatarUrl(avatar: number[]) {

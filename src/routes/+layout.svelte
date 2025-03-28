@@ -9,9 +9,21 @@
 	import Titlebar from '$lib/components/Titlebar.svelte';
 
 	let { children } = $props();
+
+	// Prevents the context menu from appearing
+	function handleRightClick(event: MouseEvent) {
+		event.preventDefault();
+		event.stopPropagation();
+		return;
+	}
 </script>
 
-<div class="flex h-screen w-screen flex-col bg-neutral-950 text-white">
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div
+	class="flex h-screen w-screen flex-col bg-neutral-950 text-white"
+	oncontextmenu={handleRightClick}
+>
 	<Titlebar />
 
 	<div class="flex min-h-0 flex-1">

@@ -16,10 +16,12 @@
 		loading = true;
 
 		const platform = currentView.id === 'streams' ? Platform.Twitch : Platform.YouTube;
-		await command('refresh_feed', { platform });
+
+		await command('refresh_feed', { platform }).then(() => {
+			notify(`Refreshed feed`);
+		});
 
 		loading = false;
-		notify('Refreshed feed');
 	}
 
 	async function openNewWindow() {
