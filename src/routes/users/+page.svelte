@@ -58,9 +58,14 @@
 		}
 
 		await command<number>('import_subscriptions', { subscriptionsFilePath }).then(async (data) => {
-			if (!data) return;
-			notify(`Imported ${data} subscriptions`);
+			if (data === 0) {
+				notify('No new subscriptions retrieved');
+				return;
+			}
 
+			if (!data) return;
+
+			notify(`Imported ${data} subscriptions`);
 			await updateView();
 		});
 	}
@@ -128,7 +133,7 @@
 					{#if user.platform === filter}
 						<div class="flex flex-col items-center">
 							<img
-								src={getAvatarUrl(user.avatar)}
+								src={getAvatarUrl(user.platform, user.username, user.avatar)}
 								id={user.username}
 								alt={'Avatar of ' + user.username}
 								class="h-16 w-16 rounded-full"

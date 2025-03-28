@@ -19,7 +19,7 @@ pub async fn fetch_channel_by_name(channel_name: &str) -> Result<User> {
     let channel = client.query().channel_videos(channel_id).await?;
 
     let avatar = match channel.avatar.first() {
-        Some(avatar) => util::download_image(&avatar.url).await?,
+        Some(avatar) => util::download_image(&avatar.url).await,
         None => Vec::new(),
     };
 
@@ -52,7 +52,7 @@ pub async fn fetch_channels_by_id(channel_ids: Vec<String>) -> Result<Vec<User>>
         let channel = result.unwrap();
 
         let avatar = match channel.avatar.first() {
-            Some(avatar) => util::download_image(&avatar.url).await?,
+            Some(avatar) => util::download_image(&avatar.url).await,
             None => Vec::new(),
         };
 

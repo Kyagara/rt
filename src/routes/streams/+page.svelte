@@ -56,6 +56,9 @@
 					<img
 						src={`https://static-cdn.jtvnw.net/previews-ttv/live_user_${live_now.username}-440x248.jpg`}
 						alt={`Stream thumbnail for ${live_now.username}`}
+						height="248"
+						width="440"
+						class="min-h-[110px] object-contain"
 					/>
 
 					<div class="flex flex-col p-1">

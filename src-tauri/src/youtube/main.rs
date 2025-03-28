@@ -5,7 +5,6 @@ use std::{fs::File, io::Read};
 
 use anyhow::Result;
 use lazy_static::lazy_static;
-use log::error;
 use rustypipe::client::RustyPipe;
 use sqlx::Row;
 use tauri::async_runtime::Mutex;
@@ -39,6 +38,7 @@ pub async fn build_client(storage_dir: &Path) -> Result<()> {
     *client = RustyPipe::builder()
         .no_botguard()
         .unauthenticated()
+        .report()
         .storage_dir(storage_dir)
         .build_with_client(http_client)?;
 
@@ -92,37 +92,52 @@ pub async fn import_subscriptions(
     let mut saved_channel_ids = Vec::with_capacity(rows.len());
 
     for row in rows {
-        let channel_id: String = row.try_get("id").map_err(|e| e.to_string())?;
+        let channel_id: String = row.get::<String, _>(0);
         saved_channel_ids.push(channel_id);
     }
 
     imported_channel_ids.retain(|item| !saved_channel_ids.contains(item));
 
-    let mut channels_imported = 0;
+    if imported_channel_ids.is_empty() {
+        return Ok(0);
+    }
 
-    let new_channels = match channel::fetch_channels_by_id(imported_channel_ids).await {
+    let new_channels = match channel::fetch_channels_by_id(imported_channel_ids.clone()).await {
         Ok(channels) => channels,
         Err(err) => {
             return Err(format!("Fetching channels: {err}"));
         }
     };
 
-    for channel in new_channels {
-        channels_imported += 1;
-
-        let query = "INSERT INTO youtube (id, username, avatar) VALUES (?, ?, ?) ON CONFLICT (username) DO UPDATE SET avatar = ?";
-
-        if let Err(err) = sqlx::query(query)
-            .bind(&channel.id)
-            .bind(&channel.username)
-            .bind(&channel.avatar)
-            .bind(&channel.avatar)
-            .execute(users_db)
-            .await
-        {
-            error!("Saving channel '{}': {err}", channel.username);
-        }
+    if new_channels.is_empty() {
+        return Ok(0);
     }
 
-    Ok(channels_imported)
+    let mut tx = users_db
+        .begin()
+        .await
+        .map_err(|err| format!("Beginning transaction: {err}"))?;
+
+    let placeholders = vec!["(?, ?, ?)"; new_channels.len()].join(", ");
+
+    let sql = format!("INSERT OR IGNORE INTO youtube (id, username, avatar) VALUES {placeholders}");
+
+    let mut query = sqlx::query(&sql);
+
+    for channel in &new_channels {
+        query = query
+            .bind(&channel.id)
+            .bind(&channel.username)
+            .bind(&channel.avatar);
+    }
+
+    if let Err(err) = query.execute(&mut *tx).await {
+        return Err(format!("Executing insert query: {err}"));
+    }
+
+    if let Err(err) = tx.commit().await {
+        return Err(format!("Committing transaction: {err}"));
+    }
+
+    Ok(new_channels.len().try_into().unwrap())
 }

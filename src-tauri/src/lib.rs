@@ -1,3 +1,5 @@
+use std::fs;
+
 use anyhow::anyhow;
 use log::{error, LevelFilter};
 use sqlx::SqlitePool;
@@ -80,6 +82,12 @@ pub fn run() {
 
             async_runtime::block_on(async {
                 let storage_dir = app_data_dir.join("rustypipe");
+
+                // Make sure the storage directory exists
+                if !storage_dir.exists() {
+                    fs::create_dir_all(&storage_dir)?;
+                }
+
                 if let Err(err) = youtube::main::build_client(&storage_dir).await {
                     return Err(anyhow!("Building new RustyPipe client: {err}"));
                 }

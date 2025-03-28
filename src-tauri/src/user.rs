@@ -35,7 +35,7 @@ pub async fn get_users(
         if let Ok(users) = get_users_for_platform(users_db, platform).await {
             Ok(users)
         } else {
-            Err(format!("Getting {platform:#?} users"))
+            Err(format!("Getting user for {platform:#?}"))
         }
     } else {
         let mut users = Vec::new();
@@ -83,14 +83,16 @@ pub async fn add_user(
 
         let query = "INSERT INTO twitch (id, username, avatar) VALUES (?, ?, ?) ON CONFLICT (username) DO UPDATE SET avatar = ?";
 
-        sqlx::query(query)
+        if let Err(err) = sqlx::query(query)
             .bind(&user.id)
             .bind(&user.username)
             .bind(&user.avatar)
             .bind(&user.avatar)
             .execute(users_db)
             .await
-            .map_err(|e| e.to_string())?;
+        {
+            return Err(format!("Saving user: {err}"));
+        }
     }
 
     if platform == Platform::YouTube {
@@ -103,14 +105,16 @@ pub async fn add_user(
 
         let query = "INSERT INTO youtube (id, username, avatar) VALUES (?, ?, ?) ON CONFLICT (username) DO UPDATE SET avatar = ?";
 
-        sqlx::query(query)
+        if let Err(err) = sqlx::query(query)
             .bind(&user.id)
             .bind(&user.username)
             .bind(&user.avatar)
             .bind(&user.avatar)
             .execute(users_db)
             .await
-            .map_err(|e| e.to_string())?;
+        {
+            return Err(format!("Saving user: {err}"));
+        }
     }
 
     if let Err(err) = app_handle.emit("updated_users", platform) {
@@ -134,46 +138,31 @@ pub async fn remove_user(
 
     if platform == Platform::Twitch {
         let query = "DELETE FROM twitch WHERE username = ?";
-
-        sqlx::query(query)
-            .bind(&username)
-            .execute(users_db)
-            .await
-            .map_err(|e| e.to_string())?;
+        if let Err(err) = sqlx::query(query).bind(&username).execute(users_db).await {
+            return Err(format!("Deleting user: {err}"));
+        }
 
         let query = "DELETE FROM twitch WHERE username = ?";
-
-        sqlx::query(query)
-            .bind(&username)
-            .execute(feeds_db)
-            .await
-            .map_err(|e| e.to_string())?;
+        if let Err(err) = sqlx::query(query).bind(&username).execute(feeds_db).await {
+            return Err(format!("Deleting feed: {err}"));
+        }
 
         let query = "DELETE FROM twitch WHERE username = ?";
-
-        sqlx::query(query)
-            .bind(&username)
-            .execute(emotes_db)
-            .await
-            .map_err(|e| e.to_string())?;
+        if let Err(err) = sqlx::query(query).bind(&username).execute(emotes_db).await {
+            return Err(format!("Deleting emotes: {err}"));
+        }
     }
 
     if platform == Platform::YouTube {
         let query = "DELETE FROM youtube WHERE username = ?";
-
-        sqlx::query(query)
-            .bind(&username)
-            .execute(users_db)
-            .await
-            .map_err(|e| e.to_string())?;
+        if let Err(err) = sqlx::query(query).bind(&username).execute(users_db).await {
+            return Err(format!("Deleting user: {err}"));
+        }
 
         let query = "DELETE FROM youtube WHERE username = ?";
-
-        sqlx::query(query)
-            .bind(&username)
-            .execute(feeds_db)
-            .await
-            .map_err(|e| e.to_string())?;
+        if let Err(err) = sqlx::query(query).bind(&username).execute(feeds_db).await {
+            return Err(format!("Deleting feed: {err}"));
+        }
     }
 
     if let Err(err) = app_handle.emit("updated_users", platform) {
@@ -198,9 +187,9 @@ async fn get_users_for_platform(users_db: &Pool<Sqlite>, platform: Platform) -> 
 
     for row in rows {
         let user = User {
-            id: row.try_get("id")?,
-            username: row.try_get("username")?,
-            avatar: row.try_get("avatar")?,
+            id: row.get::<String, _>(0),
+            username: row.get::<String, _>(1),
+            avatar: row.get::<Vec<u8>, _>(2),
             platform,
         };
 

@@ -81,7 +81,7 @@
 					await fetchMore();
 				}
 			},
-			{ root: null, threshold: 1.0 }
+			{ root: null, threshold: 0.8 }
 		);
 
 		if (loader) {
@@ -108,6 +108,8 @@
 					<img
 						src={`https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`}
 						alt={`Video thumbnail for ${video.id}`}
+						height="180"
+						width="320"
 						class="min-h-[110px] object-contain"
 					/>
 

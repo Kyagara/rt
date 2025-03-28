@@ -51,7 +51,7 @@ pub async fn fetch_user(username: &str) -> Result<(User, HashMap<String, Emote>)
     user_emotes.extend(seventv_emotes);
     user_emotes.extend(bettertv_emotes);
 
-    let avatar = util::download_image(&user.profile_image_url).await?;
+    let avatar = util::download_image(&user.profile_image_url).await;
 
     let user = User {
         id: user_id,

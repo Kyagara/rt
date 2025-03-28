@@ -19,10 +19,21 @@ export async function command<T>(command: string, data?: any): Promise<T | null>
 	}
 }
 
-export function getAvatarUrl(avatar: number[]) {
+const ytAvatarCache = new Map();
+const twAvatarCache = new Map();
+
+export function getAvatarUrl(platform: Platform, username: string, avatar: number[]) {
+	const cache = platform === Platform.Twitch ? twAvatarCache : ytAvatarCache;
+	if (cache.has(username)) {
+		return cache.get(username);
+	}
+
 	const byteArray = new Uint8Array(avatar);
 	const blob = new Blob([byteArray], { type: 'image/png' });
-	return URL.createObjectURL(blob);
+	const url = URL.createObjectURL(blob);
+
+	cache.set(username, url);
+	return url;
 }
 
 export function timeAgo(timestamp: number) {
