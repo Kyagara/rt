@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use std::time::Duration;
 use std::{fs::File, io::Read};
 
 use anyhow::Result;
@@ -9,6 +10,7 @@ use rustypipe::client::RustyPipe;
 use sqlx::Row;
 use tauri::async_runtime::Mutex;
 use tauri::State;
+use tauri_plugin_http::reqwest::Client;
 
 use crate::AppState;
 
@@ -17,6 +19,7 @@ use super::channel;
 lazy_static! {
     pub static ref RP_CLIENT: Mutex<RustyPipe> = Mutex::new(
         RustyPipe::builder()
+            .no_reporter()
             .no_storage()
             .no_botguard()
             .build()
@@ -27,11 +30,17 @@ lazy_static! {
 pub async fn build_client(storage_dir: &Path) -> Result<()> {
     let mut client = RP_CLIENT.lock().await;
 
+    let http_client = Client::builder()
+        .use_rustls_tls()
+        .https_only(true)
+        .tcp_keepalive(Duration::from_secs(10))
+        .http2_prior_knowledge();
+
     *client = RustyPipe::builder()
+        .no_botguard()
         .unauthenticated()
         .storage_dir(storage_dir)
-        .no_botguard()
-        .build()?;
+        .build_with_client(http_client)?;
 
     Ok(())
 }

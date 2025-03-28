@@ -37,7 +37,7 @@ pub async fn fetch_videos(channel_ids: Vec<String>) -> Result<Vec<YouTubeVideo>>
 
         videos.reserve_exact(channel.videos.len());
 
-        channel.videos.iter().for_each(|video| {
+        for video in channel.videos {
             let video = YouTubeVideo {
                 id: video.id.clone(),
                 username: channel.name.clone(),
@@ -47,7 +47,7 @@ pub async fn fetch_videos(channel_ids: Vec<String>) -> Result<Vec<YouTubeVideo>>
             };
 
             videos.push(video);
-        });
+        }
     }
 
     Ok(videos)

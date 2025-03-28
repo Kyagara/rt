@@ -1,4 +1,5 @@
 use anyhow::Result;
+use log::error;
 use serde::Serialize;
 use sqlx::Row;
 use tauri::{async_runtime::Mutex, AppHandle, Emitter, State};
@@ -39,8 +40,8 @@ pub async fn get_feed(
 
         for row in rows {
             let live_now = LiveNow {
-                username: row.try_get("username").map_err(|e| e.to_string())?,
-                started_at: row.try_get("started_at").map_err(|e| e.to_string())?,
+                username: row.get::<String, _>(0),
+                started_at: row.get::<String, _>(1),
             };
 
             feed.push(live_now);
@@ -99,10 +100,10 @@ pub async fn refresh_feed(
             }
         };
 
-        let mut usernames: Vec<String> = Vec::new();
+        let mut usernames: Vec<String> = Vec::with_capacity(rows.len());
 
         for row in rows {
-            let username = row.try_get("username").map_err(|e| e.to_string())?;
+            let username = row.get::<String, _>(0);
             usernames.push(username);
         }
 
@@ -114,21 +115,21 @@ pub async fn refresh_feed(
         };
 
         let query = "DELETE FROM twitch";
+        if let Err(err) = sqlx::query(query).execute(feeds_db).await {
+            return Err(format!("Executing delete query: {err}"));
+        }
 
-        sqlx::query(query)
-            .execute(feeds_db)
-            .await
-            .map_err(|e| e.to_string())?;
+        let query = "INSERT INTO twitch (username, started_at) VALUES (?, ?)";
 
         for (username, live) in live_now {
-            let query = "INSERT INTO twitch (username, started_at) VALUES (?, ?)";
-
-            sqlx::query(query)
+            if let Err(err) = sqlx::query(query)
                 .bind(&username)
                 .bind(&live.started_at)
                 .execute(feeds_db)
                 .await
-                .map_err(|e| e.to_string())?;
+            {
+                error!("Executing insert query: {err}");
+            }
         }
 
         if let Err(err) = app_handle.emit("updated_streams", &platform) {
@@ -149,7 +150,7 @@ pub async fn refresh_feed(
         let mut channel_ids: Vec<String> = Vec::new();
 
         for row in rows {
-            let channel_id = row.try_get("id").map_err(|e| e.to_string())?;
+            let channel_id = row.get::<String, _>(0);
             channel_ids.push(channel_id);
         }
 
@@ -161,24 +162,36 @@ pub async fn refresh_feed(
         };
 
         let query = "DELETE FROM youtube";
+        if let Err(err) = sqlx::query(query).execute(feeds_db).await {
+            return Err(format!("Executing delete query: {err}"));
+        }
 
-        sqlx::query(query)
-            .execute(feeds_db)
+        let mut tx = feeds_db
+            .begin()
             .await
-            .map_err(|e| e.to_string())?;
+            .map_err(|err| format!("Beginning transaction: {err}"))?;
 
-        for video in videos {
-            let query = "INSERT INTO youtube (id, username, title, published_at, view_count) VALUES (?, ?, ?, ?, ?)";
+        let placeholders = vec!["(?, ?, ?, ?, ?)"; videos.len()].join(", ");
 
-            sqlx::query(query)
+        let sql = format!("INSERT INTO youtube (id, username, title, published_at, view_count) VALUES {placeholders}");
+
+        let mut query = sqlx::query(&sql);
+
+        for video in &videos {
+            query = query
                 .bind(&video.id)
                 .bind(&video.username)
                 .bind(&video.title)
                 .bind(video.published_at)
-                .bind(video.view_count)
-                .execute(feeds_db)
-                .await
-                .map_err(|e| e.to_string())?;
+                .bind(&video.view_count);
+        }
+
+        if let Err(err) = query.execute(&mut *tx).await {
+            return Err(format!("Executing insert query: {err}"));
+        }
+
+        if let Err(err) = tx.commit().await {
+            return Err(format!("Committing transaction: {err}"));
         }
 
         if let Err(err) = app_handle.emit("updated_videos", platform) {

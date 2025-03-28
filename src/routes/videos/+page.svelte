@@ -71,6 +71,7 @@
 		appWebview.listen<string>('updated_videos', async () => {
 			last_published_at = 0;
 			hasMore = true;
+			feed = [];
 			await fetchMore();
 		});
 

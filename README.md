@@ -99,10 +99,10 @@ The backend uses a PersistedQuery for the feed and a custom query to the Twitch 
 ## TODO
 
 - Update screenshots.
-- Refactor Player component for both frontends, might also make a custom layout using tailwind.
 - Add information about the content somewhere in the watch page.
 - Maybe cache users/emotes/feeds in the AppState, also maybe return them when possible in the same request instead of emitting an update event.
 - More logging and better errors.
+- Maybe make a custom player layout using tailwind.
 - YouTube:
   - Maybe move from youtube embed to using RustyPipe's botguard and retrieve video URLs using it.
   - Add YouTube channel page with video search.
