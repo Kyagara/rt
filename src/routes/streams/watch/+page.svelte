@@ -3,7 +3,7 @@
 
 	import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 
-	import Player from '$lib/components/Player.svelte';
+	import TwitchPlayer from '$lib/components/players/Twitch.svelte';
 	import Chat from '$lib/components/Chat.svelte';
 	import { notify } from '$lib/components/Notification.svelte';
 
@@ -72,7 +72,7 @@
 <div class="flex h-full w-full">
 	{#if url}
 		<div class="flex min-h-0 min-w-0 flex-1">
-			<Player {windowLabel} {username} {url} />
+			<TwitchPlayer {windowLabel} {username} {url} />
 		</div>
 
 		<div class="max-w-1/5 min-w-1/5" hidden={!showChat}>

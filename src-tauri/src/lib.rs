@@ -142,6 +142,7 @@ pub fn run() {
             twitch::proxy::proxy_stream,
             twitch::chat::join_chat,
             youtube::main::import_subscriptions,
+            youtube::video::fetch_player,
         ])
         .run(tauri::generate_context!())
         .expect("while running tauri application");

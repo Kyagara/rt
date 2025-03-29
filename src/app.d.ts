@@ -1,3 +1,5 @@
+import type { VideoMimeType } from 'vidstack';
+
 declare global {
 	type User = {
 		id: string;
@@ -22,6 +24,41 @@ declare global {
 		title: string;
 		published_at: number;
 		view_count: string;
+	};
+
+	type YoutubePlayer = {
+		id: string;
+		title: string;
+		description: string;
+		chapters: YouTubeChapter[];
+		subtitles: YouTubeSubtitle[];
+		published_date_txt: string;
+		view_count: number;
+		is_live: boolean;
+		sources: YouTubeSource[];
+		audio: string;
+		channel_id: string;
+		channel_name: string;
+		channel_avatar: string;
+	};
+
+	type YouTubeChapter = {
+		name: string;
+		position: number;
+	};
+
+	type YouTubeSubtitle = {
+		url: string;
+		lang: string;
+		lang_name: string;
+		auto_generated: boolean;
+	};
+
+	type YouTubeSource = {
+		url: string;
+		format: VideoMimeType;
+		height: number;
+		width: number;
 	};
 
 	type ChatEvent = {

@@ -36,7 +36,6 @@ pub async fn build_client(storage_dir: &Path) -> Result<()> {
         .http2_prior_knowledge();
 
     *client = RustyPipe::builder()
-        .no_botguard()
         .unauthenticated()
         .report()
         .storage_dir(storage_dir)

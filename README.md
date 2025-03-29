@@ -103,7 +103,6 @@ The backend uses queries from the Twitch API to retrieve user data and stream pl
 - Add information about the content somewhere in the watch page.
 - Maybe make a custom player layout using tailwind.
 - YouTube:
-  - Maybe move from youtube embed to using RustyPipe's botguard and retrieve video URLs using it.
   - Add YouTube channel page with video search.
   - Allow downloading videos and thumbnails.
   - Subscribe to channel from watch page.

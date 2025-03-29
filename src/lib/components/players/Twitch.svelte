@@ -127,10 +127,3 @@
 	>
 	</media-plyr-layout>
 </media-player>
-
-<style>
-	:global(media-player video) {
-		max-height: 100%;
-		max-width: 100%;
-	}
-</style>

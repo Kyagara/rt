@@ -50,4 +50,23 @@
 	:global(.simplebar-scrollbar::before) {
 		background-color: #ffffff;
 	}
+
+	:global(media-player) {
+		height: 100%;
+		max-height: 100%;
+	}
+
+	:global(media-provider iframe) {
+		height: 100%;
+		max-height: 100%;
+		max-width: 100%;
+		object-fit: contain;
+	}
+
+	:global(media-player video) {
+		height: 100%;
+		max-height: 100%;
+		max-width: 100%;
+		object-fit: contain;
+	}
 </style>
