@@ -20,15 +20,20 @@
 		await command<YoutubePlayer>('fetch_player', { videoId: videoID })
 			.then(async (data) => {
 				if (!data) return;
-
 				player = data;
-				player.id = videoID;
+
+				if (data.sources.length === 0) return;
 				usingEmbed = false;
 			})
-			.catch(() => {
-				notify('Error fetching player');
+			.catch((err) => {
+				if (err) {
+					notify('Error fetching player');
+				}
+
+				usingEmbed = true;
 			});
 
+		player.id = videoID;
 		loading = false;
 	});
 </script>
@@ -36,7 +41,9 @@
 <div data-simplebar class="flex h-full w-full flex-col">
 	{#if !loading}
 		<div class="h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] w-full bg-black">
-			<YouTubePlayer {player} {usingEmbed} />
+			{#key usingEmbed}
+				<YouTubePlayer {player} {usingEmbed} />
+			{/key}
 		</div>
 
 		<div class="flex p-2">

@@ -7,6 +7,7 @@
 	import { currentView, changeView } from '$lib/state/View.svelte';
 
 	import { command, Platform } from '$lib';
+	import { onMount } from 'svelte';
 
 	let path = $state($page.url.pathname);
 
@@ -24,12 +25,37 @@
 		loading = false;
 	}
 
-	async function openNewWindow() {
-		await command('open_new_window', { url: `/${currentView.id}` });
+	async function handleMouseWheelClick(event: MouseEvent, toPage: string = currentView.id) {
+		if (event.button === 1) {
+			await openNewWindow(toPage);
+			return;
+		}
+		return;
+	}
+
+	async function openNewWindow(toPage: string = currentView.id) {
+		await command('open_new_window', { url: `/${toPage}` });
 	}
 
 	$effect(() => {
 		path = $page.url.pathname;
+	});
+
+	onMount(() => {
+		path = $page.url.pathname;
+
+		let view = path.replace('/', '');
+		if (view === '') {
+			view = 'videos';
+		} else if (view === 'videos' || view.startsWith('youtube')) {
+			view = 'videos';
+		} else if (view === 'streams' || view.startsWith('twitch')) {
+			view = 'streams';
+		} else if (view === 'users') {
+			view = 'users';
+		}
+
+		changeView(view);
 	});
 </script>
 
@@ -38,6 +64,7 @@
 		<button
 			aria-label="Videos"
 			title="Videos"
+			onmousedown={async (event: MouseEvent) => await handleMouseWheelClick(event, 'videos')}
 			onclick={() => changeView('videos')}
 			disabled={path === '/videos'}
 			class="flex w-full flex-col items-center py-2 {path === '/videos'
@@ -55,6 +82,7 @@
 		<button
 			aria-label="Streams"
 			title="Streams"
+			onmousedown={async (event: MouseEvent) => await handleMouseWheelClick(event, 'streams')}
 			onclick={() => changeView('streams')}
 			disabled={path === '/streams'}
 			class="flex w-full flex-col items-center py-2 {path === '/streams'
@@ -72,6 +100,7 @@
 		<button
 			aria-label="Users"
 			title="Users"
+			onmousedown={async (event: MouseEvent) => await handleMouseWheelClick(event, 'users')}
 			onclick={() => changeView('users')}
 			disabled={currentView.id === 'users'}
 			class="flex w-full flex-col items-center py-2 {currentView.id === 'users'
@@ -119,6 +148,7 @@
 		<button
 			aria-label="Open new window"
 			title="Open new window"
+			onmousedown={async (event: MouseEvent) => await handleMouseWheelClick(event)}
 			onclick={async () => await openNewWindow()}
 			class="flex w-full cursor-pointer flex-col items-center py-2 hover:bg-neutral-600"
 		>

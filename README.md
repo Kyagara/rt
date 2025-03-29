@@ -83,13 +83,17 @@ Logs:
 
 ### Frontends
 
-`YouTube`:
+`YouTube`:  
 
-Using the excellent [RustyPipe](https://crates.io/crates/rustypipe) library to interact with YouTube.
+Using the excellent [RustyPipe](https://crates.io/crates/rustypipe) library to interact with YouTube, its recommended to install [rustypipe-botguard](https://crates.io/crates/rustypipe-botguard) to use a YouTube player instead of the embedded one.
+
+```bash
+cargo install rustypipe-botguard
+```
 
 The feed uses YouTube's rss feed to retrieve videos to avoid rate limits, this sadly does not contain video duration.
 
-The player uses Vidstack's YouTube [provider](https://vidstack.io/docs/player/api/providers/youtube/) to play videos via embeds, this has the drawbacks of not being able to play videos that disallows embedding and not being able to select a video quality.
+The watch page will try to use RustyPipe to retrieve a YouTube player, if it fails, it will use Vidstack's YouTube [provider](https://vidstack.io/docs/player/api/providers/youtube/) to play videos via embeds, this fallback has the drawbacks of not being able to play videos that disallows embedding and not being able to select a video quality. You can also switch between them.
 
 `Twitch`:
 

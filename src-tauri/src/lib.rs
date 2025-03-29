@@ -85,40 +85,31 @@ pub fn run() {
             }
 
             async_runtime::block_on(async {
-                let storage_dir = app_data_dir.join("rustypipe");
+                let rustypipe_storage_dir = app_data_dir.join("rustypipe");
 
-                // Make sure the storage directory exists
-                if !storage_dir.exists() {
-                    fs::create_dir_all(&storage_dir)?;
+                // Make sure the rustypipe storage directory exists
+                if !rustypipe_storage_dir.exists() {
+                    fs::create_dir_all(&rustypipe_storage_dir)?;
                 }
 
-                if let Err(err) = youtube::main::build_client(&storage_dir).await {
+                if let Err(err) = youtube::main::build_client(&rustypipe_storage_dir).await {
                     return Err(anyhow!("Building new RustyPipe client: {err}"));
                 }
 
                 let users_db_path = app_data_dir.join("users.db");
-                let users_db = match SqlitePool::connect(users_db_path.to_str().unwrap()).await {
-                    Ok(db) => db,
-                    Err(err) => {
-                        return Err(anyhow!("Connecting to 'users.db': {err}"));
-                    }
-                };
+                let users_db = SqlitePool::connect(users_db_path.to_str().unwrap())
+                    .await
+                    .map_err(|err| anyhow!("Connecting to 'users.db': {err}"))?;
 
                 let feeds_db_path = app_data_dir.join("feeds.db");
-                let feeds_db = match SqlitePool::connect(feeds_db_path.to_str().unwrap()).await {
-                    Ok(db) => db,
-                    Err(err) => {
-                        return Err(anyhow!("Connecting to 'feeds.db': {err}"));
-                    }
-                };
+                let feeds_db = SqlitePool::connect(feeds_db_path.to_str().unwrap())
+                    .await
+                    .map_err(|err| anyhow!("Connecting to 'feeds.db': {err}"))?;
 
                 let emotes_db_path = app_data_dir.join("emotes.db");
-                let emotes_db = match SqlitePool::connect(emotes_db_path.to_str().unwrap()).await {
-                    Ok(db) => db,
-                    Err(err) => {
-                        return Err(anyhow!("Connecting to 'emotes.db': {err}"));
-                    }
-                };
+                let emotes_db = SqlitePool::connect(emotes_db_path.to_str().unwrap())
+                    .await
+                    .map_err(|err| anyhow!("Connecting to 'emotes.db': {err}"))?;
 
                 Ok(app.manage(Mutex::new(AppState {
                     users_db: Some(users_db),
