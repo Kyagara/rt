@@ -10,10 +10,12 @@
 	import { command, getAvatarUrl, Platform } from '$lib';
 
 	let users = $state([]) as User[];
+	let filteredUsers = $state([]) as User[];
 	let loading = $state(false);
 
 	let filter = $state(Platform.Twitch);
 	let channelName = $state('');
+	let search = $state('');
 
 	async function addUser(username: string) {
 		loading = true;
@@ -45,6 +47,18 @@
 		});
 	}
 
+	function handleSearch(event: Event) {
+		const target = event.target as HTMLInputElement;
+
+		if (target.value) {
+			filteredUsers = users.filter((user) =>
+				user.username.toLowerCase().includes(target.value.toLowerCase())
+			);
+		} else {
+			filteredUsers = users;
+		}
+	}
+
 	async function importSubscriptions() {
 		const subscriptionsFilePath = await open({
 			multiple: false,
@@ -74,6 +88,9 @@
 		await command<User[]>('get_users').then((data) => {
 			if (!data) return;
 			users = data.sort((a, b) => a.username.localeCompare(b.username));
+			filteredUsers = users.filter((user) =>
+				user.username.toLowerCase().includes(search.toLowerCase())
+			);
 		});
 	}
 
@@ -101,16 +118,22 @@
 
 		<hr class="mx-1 h-full border-gray-700" />
 
-		<form onsubmit={async () => await addUser(channelName)} class="flex items-center gap-2">
-			<span class="font-medium">Add user:</span>
-
+		<form onsubmit={async () => await addUser(channelName)}>
 			<input
 				type="text"
 				bind:value={channelName}
-				placeholder="Channel name"
+				placeholder="Add by channel name"
 				class="rounded-md border border-gray-600 bg-gray-800 px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
 			/>
 		</form>
+
+		<input
+			type="text"
+			bind:value={search}
+			placeholder="Search"
+			oninput={handleSearch}
+			class="rounded-md border border-gray-600 bg-gray-800 px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+		/>
 
 		{#if filter === Platform.YouTube}
 			<button
@@ -125,11 +148,11 @@
 	<hr class="w-full border-gray-700" />
 
 	<div class="flex w-full">
-		{#if !loading && users.filter((user) => user.platform === filter).length === 0}
+		{#if !loading && filteredUsers.filter((user) => user.platform === filter).length === 0}
 			<span class="text-lg font-medium">No users found</span>
 		{:else}
 			<Grid>
-				{#each users as user, index (index)}
+				{#each filteredUsers as user, index (index)}
 					{#if user.platform === filter}
 						<div class="flex flex-col items-center">
 							<img
