@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { error as logError } from '@tauri-apps/plugin-log';
+import { openUrl } from '@tauri-apps/plugin-opener';
 
 import { notify } from './components/Notification.svelte';
 
@@ -69,6 +70,18 @@ export function streamingFor(startedAt: string) {
 	const formattedSeconds = seconds.toString().padStart(2, '0');
 
 	return `${hours}:${formattedMinutes}:${formattedSeconds}`;
+}
+
+export async function openURLInBrowser(event: MouseEvent) {
+	const target = event.target as HTMLElement;
+	if (target.id === 'url') {
+		let url = target.innerText;
+		if (!url.startsWith('http') && !url.startsWith('https')) {
+			url = `https://${url}`;
+		}
+
+		await openUrl(url);
+	}
 }
 
 function plural(number: number) {

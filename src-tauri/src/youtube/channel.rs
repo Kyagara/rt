@@ -33,6 +33,26 @@ pub async fn fetch_channel_by_name(channel_name: &str) -> Result<User> {
     Ok(user)
 }
 
+pub async fn fetch_channel_by_id(channel_id: &str) -> Result<User> {
+    let client = RP_CLIENT.lock().await;
+
+    let channel = client.query().channel_videos(channel_id).await?;
+
+    let avatar = match channel.avatar.first() {
+        Some(avatar) => util::download_image(&avatar.url).await,
+        None => Vec::new(),
+    };
+
+    let user = User {
+        id: channel.id,
+        username: channel.name,
+        avatar,
+        platform: Platform::YouTube,
+    };
+
+    Ok(user)
+}
+
 pub async fn fetch_channels_by_id(channel_ids: Vec<String>) -> Result<Vec<User>> {
     let client = RP_CLIENT.lock().await;
     let query = client.query();

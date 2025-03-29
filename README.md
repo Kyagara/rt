@@ -109,8 +109,9 @@ The backend uses queries from the Twitch API to retrieve user data and stream pl
 - YouTube:
   - Add YouTube channel page with video search.
   - Allow downloading videos and thumbnails.
-  - Subscribe to channel from watch page.
   - Search for videos in the feed.
+  - Properly handle links in the description.
+  - Fix mute/volume not working in the `player-settings` local storage.
 - Twitch:
   - It seems there are issues with the `avif` format in emotes in Linux, maybe use `webp` or `png` instead.
   - Put the seek bar at the end when joining a stream, currently it is some seconds behind when first joining.

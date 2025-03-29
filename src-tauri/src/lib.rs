@@ -123,6 +123,7 @@ pub fn run() {
 
     builder
         .invoke_handler(tauri::generate_handler![
+            user::get_user,
             user::get_users,
             user::add_user,
             user::remove_user,

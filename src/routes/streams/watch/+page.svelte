@@ -14,6 +14,8 @@
 	let username = $state('');
 	let url = $state('');
 
+	let loading = $state(true);
+
 	let showChat = $state(false);
 	let movingMouse = $state(false);
 
@@ -53,14 +55,19 @@
 		username = routeURL.searchParams.get('username')!;
 		changeView('streams', false);
 
-		command<string>('fetch_stream_playback', { username, backup: false }).then((data) => {
-			if (!data) {
-				notify('Stream not found');
-				return;
-			}
+		command<string>('fetch_stream_playback', { username, backup: false })
+			.then((data) => {
+				if (!data) {
+					return;
+				}
 
-			url = data;
-		});
+				url = data;
+				loading = false;
+			})
+			.catch(() => {
+				notify('Stream not found');
+				loading = false;
+			});
 
 		document.addEventListener('mousemove', handleMousemove);
 		return () => {
@@ -69,8 +76,16 @@
 	});
 </script>
 
-<div class="flex h-full w-full">
-	{#if url}
+<div class="flex h-full w-full {loading ? 'flex-col' : ''}">
+	{#if loading}
+		<div
+			class="flex h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] flex-col items-center justify-center"
+		>
+			<div
+				class="h-32 w-32 animate-spin rounded-full border-t-2 border-b-2 border-neutral-400/25"
+			></div>
+		</div>
+	{:else if url}
 		<div class="flex min-h-0 min-w-0 flex-1">
 			<TwitchPlayer {windowLabel} {username} {url} />
 		</div>
@@ -78,10 +93,16 @@
 		<div class="max-w-1/5 min-w-1/5" hidden={!showChat}>
 			<Chat {username} {toggleChat} />
 		</div>
+	{:else}
+		<div
+			class="flex h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] w-full flex-col items-center justify-center"
+		>
+			<span class="text-lg font-medium">{`${username} is not live`}</span>
+		</div>
 	{/if}
 </div>
 
-{#if movingMouse && !showChat}
+{#if !loading && url && movingMouse && !showChat}
 	<button
 		title="Expand chat"
 		class="fixed top-8 right-0 z-50 p-2 hover:bg-neutral-700"

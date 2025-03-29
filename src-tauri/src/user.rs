@@ -24,6 +24,36 @@ pub enum Platform {
 }
 
 #[tauri::command]
+pub async fn get_user(
+    state: State<'_, Mutex<AppState>>,
+    platform: Platform,
+    username: String,
+) -> Result<Option<User>, String> {
+    let state = state.lock().await;
+    let users_db = state.users_db.as_ref().unwrap();
+
+    let query = match platform {
+        Platform::YouTube => "SELECT id, username, avatar FROM youtube WHERE username = ?",
+        Platform::Twitch => "SELECT id, username, avatar FROM twitch WHERE username = ?",
+    };
+
+    let row = sqlx::query(query)
+        .bind(&username)
+        .fetch_optional(users_db)
+        .await
+        .map_err(|err| format!("Querying user: {err}"))?;
+
+    let user = row.map(|row| User {
+        id: row.get::<String, _>(0),
+        username: row.get::<String, _>(1),
+        avatar: row.get::<Vec<u8>, _>(2),
+        platform,
+    });
+
+    Ok(user)
+}
+
+#[tauri::command]
 pub async fn get_users(
     state: State<'_, Mutex<AppState>>,
     platform: Option<Platform>,
@@ -64,6 +94,7 @@ pub async fn add_user(
     state: State<'_, Mutex<AppState>>,
     username: String,
     platform: Platform,
+    id: Option<String>,
 ) -> Result<(), String> {
     let state = state.lock().await;
     let users_db = state.users_db.as_ref().unwrap();
@@ -73,7 +104,7 @@ pub async fn add_user(
         let (user, emotes) = match twitch::user::fetch_user(&username).await {
             Ok(user) => user,
             Err(err) => {
-                return Err(format!("Fetching user '{username}': {err}"));
+                return Err(format!("Fetching user by name '{username}': {err}"));
             }
         };
 
@@ -96,10 +127,19 @@ pub async fn add_user(
     }
 
     if platform == Platform::YouTube {
-        let user = match youtube::channel::fetch_channel_by_name(&username).await {
-            Ok(user) => user,
-            Err(err) => {
-                return Err(format!("Fetching user '{username}': {err}"));
+        let user = if let Some(id) = id {
+            match youtube::channel::fetch_channel_by_id(&id).await {
+                Ok(user) => user,
+                Err(err) => {
+                    return Err(format!("Fetching user by id '{id}': {err}"));
+                }
+            }
+        } else {
+            match youtube::channel::fetch_channel_by_name(&username).await {
+                Ok(user) => user,
+                Err(err) => {
+                    return Err(format!("Fetching user by name '{username}': {err}"));
+                }
             }
         };
 

@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { openUrl } from '@tauri-apps/plugin-opener';
 	import { Channel } from '@tauri-apps/api/core';
 	import { emit } from '@tauri-apps/api/event';
 
 	import SimpleBar from 'simplebar';
 
-	import { command } from '$lib';
+	import { command, openURLInBrowser } from '$lib';
 
 	let { username, toggleChat } = $props();
 
@@ -37,19 +36,6 @@
 
 			messages = combined;
 			tempMessages = [];
-		}
-	}
-
-	async function openUrlInBrowser(event: MouseEvent) {
-		const target = event.target as HTMLElement;
-
-		if (target.id === 'url') {
-			let url = target.innerText;
-			if (!url.startsWith('http') && !url.startsWith('https')) {
-				url = `https://${url}`;
-			}
-
-			await openUrl(url);
 		}
 	}
 
@@ -155,7 +141,7 @@
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<span
 							id="url"
-							onclick={openUrlInBrowser}
+							onclick={openURLInBrowser}
 							tabindex="-1"
 							role="link"
 							class="underline-blue-400 mx-2 cursor-pointer break-all text-blue-400 underline hover:text-blue-600"

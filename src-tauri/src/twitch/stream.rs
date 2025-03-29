@@ -67,6 +67,19 @@ pub async fn fetch_stream_playback(username: &str, backup: bool) -> Result<Strin
         return Err(String::from("No username provided"));
     }
 
+    let gql = UseLiveQuery::new(username);
+
+    let response: UseLiveResponse = match main::send_query(gql).await {
+        Ok(response) => response,
+        Err(err) => {
+            return Err(format!("Requesting UseLive: {err}"));
+        }
+    };
+
+    if response.data.user.stream.is_none() {
+        return Err(String::from("Stream not found"));
+    }
+
     let gql = PlaybackAccessTokenQuery::new(username, backup);
 
     let response: PlaybackAccessTokenResponse = match main::send_query(gql).await {
