@@ -38,10 +38,10 @@
 			return [] as YouTubeVideo[];
 		});
 
+		feed = [...feed, ...newVideos];
+
 		if (newVideos.length < 50) {
 			hasMore = false;
-		} else {
-			feed = [...feed, ...newVideos];
 		}
 
 		loading = false;
