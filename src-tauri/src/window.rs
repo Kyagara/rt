@@ -41,12 +41,18 @@ pub fn open_url(app_handle: AppHandle, urls: &[String]) -> Result<()> {
         }
     }
 
-    // For YouTube, only URLs with video IDs are supported
+    // For YouTube
     if url.starts_with("rt://yt/") || url.starts_with("rt://youtube/") {
         let video_id = url
             .trim_start_matches("rt://yt/")
             .trim_start_matches("rt://youtube/");
         let url = format!("/videos/watch?id={video_id}");
+        open_new_window(app_handle, url);
+        return Ok(());
+    }
+
+    if url.contains("www.youtube.com/feed/subscriptions") {
+        let url = String::from("/videos");
         open_new_window(app_handle, url);
         return Ok(());
     }
