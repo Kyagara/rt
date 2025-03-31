@@ -12,6 +12,11 @@ use sqlx::prelude::FromRow;
 
 use super::main::{RP_CLIENT, USING_BOTGUARD};
 
+const DASH_IDS: [u32; 33] = [
+    133, 134, 135, 136, 137, 138, 160, 212, 264, 298, 299, 266, 167, 168, 169, 170, 218, 219, 278,
+    242, 243, 244, 245, 246, 247, 248, 271, 272, 302, 303, 308, 313, 315,
+];
+
 #[derive(Serialize, FromRow)]
 pub struct FeedPageVideo {
     pub id: String,
@@ -240,7 +245,11 @@ fn get_player_formats(
 ) -> (Vec<Format>, Vec<Format>) {
     let video = video_streams
         .iter()
-        .map(|v| {
+        .filter_map(|v| {
+            if !DASH_IDS.contains(&v.itag) {
+                return None;
+            }
+
             let codec = match v.codec {
                 VideoCodec::Unknown => "Unknown",
                 VideoCodec::Mp4v => "mp4v",
@@ -250,13 +259,13 @@ fn get_player_formats(
                 _ => "Format not supported",
             };
 
-            Format {
+            Some(Format {
                 codec: codec.to_string(),
                 src: v.url.clone(),
                 type_: v.mime.split(';').next().unwrap_or("").trim().to_string(),
                 height: v.height,
                 width: v.width,
-            }
+            })
         })
         .collect::<Vec<Format>>();
 
