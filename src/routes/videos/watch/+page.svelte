@@ -53,7 +53,13 @@
 
 	onMount(async () => {
 		const routeURL = new URL(window.location.href);
-		const searchParams = routeURL.searchParams.get('id')!;
+		const searchParams = routeURL.searchParams.get('id');
+
+		if (!searchParams) {
+			notify('No video ID found');
+			return;
+		}
+
 		let videoID = searchParams;
 		if (searchParams.startsWith('watch?v=')) {
 			videoID = searchParams.replace('watch?v=', '');

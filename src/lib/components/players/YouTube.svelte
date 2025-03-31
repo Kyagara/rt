@@ -12,9 +12,6 @@
 	let audioMuted = false;
 
 	onMount(async () => {
-		if (!player.videoFormats || player.videoFormats.length === 0) return;
-		usingEmbed = false;
-
 		if (playerEl) {
 			const playerSettings = localStorage.getItem('player-settings');
 			if (playerSettings) {
@@ -78,7 +75,7 @@
 	});
 </script>
 
-{#if usingEmbed || player.videoFormats.length === 0}
+{#if usingEmbed}
 	<media-player
 		storage="player-settings"
 		src={`https://youtu.be/${player.id}`}
@@ -88,7 +85,7 @@
 	>
 		<media-provider></media-provider>
 
-		<media-plyr-layout></media-plyr-layout>
+		<media-plyr-layout displayDuration={true}></media-plyr-layout>
 	</media-player>
 {:else}
 	<media-player
