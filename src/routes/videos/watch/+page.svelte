@@ -9,7 +9,7 @@
 	import { changeView } from '$lib/state/View.svelte';
 	import { command, getAvatarUrl, Platform } from '$lib';
 
-	let player = $state() as YoutubePlayer;
+	let player = $state() as WatchPageVideo;
 	let usingEmbed = $state(true);
 
 	let subscribed = $state(false);
@@ -23,7 +23,7 @@
 	});
 
 	function getDescription() {
-		return md.render(player.description);
+		return md.render(player.metadata.description);
 	}
 
 	async function handleSubscription() {
@@ -31,23 +31,23 @@
 			if (subscribed) {
 				await command('remove_user', {
 					platform: Platform.YouTube,
-					username: player.channel_name
+					username: player.channel.name
 				}).then(() => {
 					subscribed = false;
-					notify(`Unsubscribed from ${player.channel_name}`);
+					notify(`Unsubscribed from ${player.channel.name}`);
 				});
 			} else {
 				await command('add_user', {
 					platform: Platform.YouTube,
-					username: player.channel_name,
-					id: player.channel_id
+					username: player.channel.name,
+					id: player.channel.id
 				}).then(() => {
 					subscribed = true;
-					notify(`Subscribed to ${player.channel_name}`);
+					notify(`Subscribed to ${player.channel.name}`);
 				});
 			}
 		} catch (err) {
-			notify(`Error subscribing to ${player.channel_name}: ${err}`);
+			notify(`Error subscribing to ${player.channel.name}: ${err}`);
 		}
 	}
 
@@ -61,28 +61,28 @@
 
 		changeView('videos', false);
 
-		await command<YoutubePlayer>('fetch_player', { videoId: videoID })
+		await command<WatchPageVideo>('fetch_video', { videoId: videoID })
 			.then(async (data) => {
 				if (!data) return;
 				player = data;
 
 				await command<User>('get_user', {
 					platform: Platform.YouTube,
-					username: player.channel_name
+					username: player.channel.name
 				}).then((user) => {
 					if (user) {
 						subscribed = true;
-						if (player.channel_avatar && !user.avatar) return;
+						if (player.channel.avatar && !user.avatar) return;
 
-						player.channel_avatar = getAvatarUrl(
+						player.channel.avatar = getAvatarUrl(
 							Platform.YouTube,
-							player.channel_name,
+							player.channel.name,
 							user.avatar
 						);
 					}
 				});
 
-				if (data.sources.length === 0) return;
+				if (data.videoFormats.length === 0) return;
 				usingEmbed = false;
 			})
 			.catch((err) => {
@@ -118,20 +118,20 @@
 			<div class="flex gap-4">
 				<div class="flex flex-col gap-2">
 					<div class="flex-col">
-						<h1 class="text-lg font-bold">{player.title}</h1>
+						<h1 class="text-lg font-bold">{player.metadata.title}</h1>
 
 						<span class="text-xs">
-							{player.published_date_txt}
+							{player.metadata.publishedDateTxt}
 							-
-							{player.view_count ? `${player.view_count} views` : ''}
+							{player.metadata.viewCount ? `${player.metadata.viewCount} views` : ''}
 						</span>
 					</div>
 
 					<div class="flex items-center gap-2">
-						<img src={player.channel_avatar} alt={player.channel_name} width={48} height={64} />
+						<img src={player.channel.avatar} alt={player.channel.name} width={48} height={64} />
 
 						<span class="font-semibold">
-							{player.channel_name}
+							{player.channel.name}
 						</span>
 
 						<button
@@ -158,7 +158,7 @@
 			<hr class="w-2/3 border-neutral-400/25" />
 
 			<div class="flex flex-col gap-2">
-				{#if player.description}
+				{#if player.metadata.description}
 					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 					{@html getDescription()}
 				{:else}

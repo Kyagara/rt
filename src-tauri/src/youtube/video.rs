@@ -3,164 +3,28 @@ use std::collections::HashMap;
 use anyhow::Result;
 use futures_util::future;
 use log::{error, info};
-use rustypipe::{model::richtext::ToMarkdown, param::StreamFilter};
+use rustypipe::model::{
+    richtext::ToMarkdown, AudioCodec, AudioStream, ChannelTag, Chapter, Subtitle, VideoCodec,
+    VideoDetails, VideoStream,
+};
 use serde::Serialize;
 use sqlx::prelude::FromRow;
 
-use super::main::RP_CLIENT;
-
-#[derive(Serialize)]
-pub struct YouTubePlayer {
-    title: String,
-    description: String,
-    chapters: Vec<YouTubeChapter>,
-    subtitles: Vec<YouTubeSubtitle>,
-    published_date_txt: String,
-    view_count: u64,
-    #[serde(rename = "isLive")]
-    is_live: bool,
-    sources: Vec<YouTubeSource>,
-    audio: String,
-    channel_id: String,
-    channel_name: String,
-    channel_avatar: String,
-}
-
-#[derive(Serialize)]
-pub struct YouTubeChapter {
-    name: String,
-    position: u32,
-}
-
-#[derive(Serialize)]
-pub struct YouTubeSubtitle {
-    url: String,
-    lang: String,
-    lang_name: String,
-    auto_generated: bool,
-}
-
-#[derive(Serialize)]
-pub struct YouTubeSource {
-    url: String,
-    format: String,
-    height: u32,
-    width: u32,
-}
-
-#[tauri::command]
-pub async fn fetch_player(video_id: &str) -> Result<YouTubePlayer, String> {
-    let client = RP_CLIENT.lock().await;
-    let query = client.query();
-    let clients = query.player_client_order();
-
-    let details = query.video_details(video_id);
-    let mut player = None;
-
-    let using_embed = if client.version_botguard().await.is_some() {
-        info!("Using rustypipe-botguard");
-
-        player = Some(query.player_from_clients(video_id, clients));
-        false
-    } else {
-        info!("Using embedded player");
-        true
-    };
-
-    let results = if using_embed {
-        (details.await, None)
-    } else {
-        let results = future::join(details, player.unwrap()).await;
-        (results.0, Some(results.1))
-    };
-
-    let metadata = results
-        .0
-        .map_err(|err| format!("Fetching video metadata: {err}"))?;
-
-    let avatar = metadata
-        .channel
-        .avatar
-        .first()
-        .map(|a| a.url.clone())
-        .unwrap_or_default();
-
-    let chapters = metadata
-        .chapters
-        .into_iter()
-        .map(|c| YouTubeChapter {
-            name: c.name,
-            position: c.position,
-        })
-        .collect::<Vec<YouTubeChapter>>();
-
-    let mut subtitles = Vec::new();
-
-    let mut sources = Vec::new();
-    let mut audio = String::new();
-
-    if !using_embed {
-        let player = results
-            .1
-            .unwrap()
-            .map_err(|err| format!("Fetching player: {err}"))?;
-
-        subtitles = player
-            .subtitles
-            .iter()
-            .map(|s| YouTubeSubtitle {
-                url: s.url.clone(),
-                lang: s.lang.clone(),
-                lang_name: s.lang_name.clone(),
-                auto_generated: s.auto_generated,
-            })
-            .collect::<Vec<YouTubeSubtitle>>();
-
-        sources = player
-            .video_only_streams
-            .iter()
-            .map(|v| YouTubeSource {
-                url: v.url.clone(),
-                format: v.mime.split(';').next().unwrap_or("").trim().to_string(),
-                height: v.height,
-                width: v.width,
-            })
-            .collect::<Vec<YouTubeSource>>();
-
-        if let Some(stream) = player.select_audio_stream(&StreamFilter::default()) {
-            audio.clone_from(&stream.url);
-        }
-    }
-
-    let player = YouTubePlayer {
-        title: metadata.name,
-        description: metadata.description.to_markdown(),
-        chapters,
-        subtitles,
-        published_date_txt: metadata.publish_date_txt.unwrap_or("N/A".to_owned()),
-        view_count: metadata.view_count,
-        is_live: metadata.is_live,
-        sources,
-        audio,
-        channel_id: metadata.channel.id,
-        channel_name: metadata.channel.name,
-        channel_avatar: avatar,
-    };
-
-    Ok(player)
-}
+use super::main::{RP_CLIENT, USING_BOTGUARD};
 
 #[derive(Serialize, FromRow)]
-pub struct YouTubeVideo {
+pub struct FeedPageVideo {
     pub id: String,
     pub username: String,
     pub title: String,
+    #[serde(rename = "publishedAt")]
     pub published_at: i64,
+    #[serde(rename = "viewCount")]
     pub view_count: String,
 }
 
-pub async fn fetch_videos(channel_ids: Vec<String>) -> Result<Vec<YouTubeVideo>> {
-    let mut videos: HashMap<String, YouTubeVideo> = HashMap::new();
+pub async fn fetch_feed_videos(channel_ids: Vec<String>) -> Result<Vec<FeedPageVideo>> {
+    let mut videos: HashMap<String, FeedPageVideo> = HashMap::new();
 
     let client = RP_CLIENT.lock().await;
     let query = client.query();
@@ -182,7 +46,7 @@ pub async fn fetch_videos(channel_ids: Vec<String>) -> Result<Vec<YouTubeVideo>>
         videos.reserve(channel.videos.len());
 
         for rss_video in channel.videos {
-            let video = YouTubeVideo {
+            let video = FeedPageVideo {
                 id: rss_video.id.clone(),
                 username: channel.name.clone(),
                 title: rss_video.name.clone(),
@@ -202,7 +66,221 @@ pub async fn fetch_videos(channel_ids: Vec<String>) -> Result<Vec<YouTubeVideo>>
         }
     }
 
-    let videos: Vec<YouTubeVideo> = videos.into_values().collect();
+    let videos: Vec<FeedPageVideo> = videos.into_values().collect();
 
     Ok(videos)
+}
+
+#[derive(Serialize)]
+pub struct WatchPageVideo {
+    id: String,
+    metadata: Metadata,
+    channel: Channel,
+    chapters: Vec<VideoChapter>,
+    subtitles: Vec<VideoSubtitle>,
+    #[serde(rename = "videoFormats")]
+    video_formats: Vec<Format>,
+    #[serde(rename = "audioFormats")]
+    audio_formats: Vec<Format>,
+}
+
+#[derive(Serialize)]
+struct Metadata {
+    title: String,
+    description: String,
+    #[serde(rename = "publishedDateTxt")]
+    published_date_txt: String,
+    #[serde(rename = "viewCount")]
+    view_count: u64,
+}
+
+#[derive(Serialize)]
+struct Channel {
+    id: String,
+    name: String,
+    avatar: String,
+}
+
+#[derive(Serialize)]
+struct VideoChapter {
+    name: String,
+    position: u32,
+}
+
+#[derive(Serialize)]
+pub struct VideoSubtitle {
+    url: String,
+    lang: String,
+    #[serde(rename = "langName")]
+    lang_name: String,
+    #[serde(rename = "autoGenerated")]
+    auto_generated: bool,
+}
+
+#[derive(Serialize)]
+struct Format {
+    src: String,
+    #[serde(rename = "type")]
+    type_: String,
+    codec: String,
+    height: u32,
+    width: u32,
+}
+
+#[tauri::command]
+pub async fn fetch_video(video_id: &str) -> Result<WatchPageVideo, String> {
+    let client = RP_CLIENT.lock().await;
+    let query = client.query();
+    let clients = query.player_client_order();
+
+    let details = query.video_details(video_id);
+    let mut player = None;
+
+    let using_embed = if *USING_BOTGUARD.lock().await {
+        info!("Using rustypipe-botguard");
+        player = Some(query.player_from_clients(video_id, clients));
+        false
+    } else {
+        info!("Using embedded player");
+        true
+    };
+
+    let results = if using_embed {
+        (details.await, None)
+    } else {
+        let results = future::join(details, player.unwrap()).await;
+        (results.0, Some(results.1))
+    };
+
+    let details = results
+        .0
+        .map_err(|err| format!("Fetching video metadata: {err}"))?;
+
+    let metadata = get_metadata(&details);
+    let channel = get_channel(&details.channel);
+    let chapters = get_chapters(&details.chapters);
+
+    let (video, audio, subtitles) = if !using_embed {
+        let player = results
+            .1
+            .unwrap()
+            .map_err(|err| format!("Fetching player: {err}"))?;
+
+        let subtitles = get_subtitles(&player.subtitles);
+
+        let (video, audio) = get_player_formats(&player.video_only_streams, &player.audio_streams);
+
+        (video, audio, subtitles)
+    } else {
+        (Vec::new(), Vec::new(), Vec::new())
+    };
+
+    let watch_page_video = WatchPageVideo {
+        id: details.id.clone(),
+        metadata,
+        channel,
+        chapters,
+        subtitles,
+        video_formats: video,
+        audio_formats: audio,
+    };
+
+    Ok(watch_page_video)
+}
+
+fn get_metadata(details: &VideoDetails) -> Metadata {
+    Metadata {
+        title: details.name.clone(),
+        description: details.description.to_markdown(),
+        published_date_txt: details
+            .publish_date_txt
+            .clone()
+            .unwrap_or(String::from("N/A")),
+        view_count: details.view_count,
+    }
+}
+
+fn get_channel(channel: &ChannelTag) -> Channel {
+    Channel {
+        id: channel.id.clone(),
+        name: channel.name.clone(),
+        avatar: channel
+            .avatar
+            .first()
+            .map(|a| a.url.clone())
+            .unwrap_or_default(),
+    }
+}
+
+fn get_chapters(chapters: &[Chapter]) -> Vec<VideoChapter> {
+    chapters
+        .iter()
+        .map(|c| VideoChapter {
+            name: c.name.clone(),
+            position: c.position,
+        })
+        .collect::<Vec<VideoChapter>>()
+}
+
+fn get_subtitles(subtitles: &[Subtitle]) -> Vec<VideoSubtitle> {
+    subtitles
+        .iter()
+        .map(|s| VideoSubtitle {
+            url: s.url.clone(),
+            lang: s.lang.clone(),
+            lang_name: s.lang_name.clone(),
+            auto_generated: s.auto_generated,
+        })
+        .collect::<Vec<VideoSubtitle>>()
+}
+
+fn get_player_formats(
+    video_streams: &[VideoStream],
+    audio_streams: &[AudioStream],
+) -> (Vec<Format>, Vec<Format>) {
+    let video = video_streams
+        .iter()
+        .map(|v| {
+            let codec = match v.codec {
+                VideoCodec::Unknown => "Unknown",
+                VideoCodec::Mp4v => "mp4v",
+                VideoCodec::Avc1 => "avc1",
+                VideoCodec::Vp9 => "vp9",
+                VideoCodec::Av01 => "av01",
+                _ => "Format not supported",
+            };
+
+            Format {
+                codec: codec.to_string(),
+                src: v.url.clone(),
+                type_: v.mime.split(';').next().unwrap_or("").trim().to_string(),
+                height: v.height,
+                width: v.width,
+            }
+        })
+        .collect::<Vec<Format>>();
+
+    let audio = audio_streams
+        .iter()
+        .map(|a| {
+            let codec = match a.codec {
+                AudioCodec::Unknown => "Unknown",
+                AudioCodec::Mp4a => "mp4a",
+                AudioCodec::Opus => "opus",
+                AudioCodec::Ac3 => "ac-3",
+                AudioCodec::Ec3 => "ec-3",
+                _ => "Format not supported",
+            };
+
+            Format {
+                codec: codec.to_string(),
+                src: a.url.clone(),
+                type_: a.mime.split(';').next().unwrap_or("").trim().to_string(),
+                height: 0,
+                width: 0,
+            }
+        })
+        .collect::<Vec<Format>>();
+
+    (video, audio)
 }

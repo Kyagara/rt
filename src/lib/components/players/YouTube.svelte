@@ -3,11 +3,8 @@
 
 	import 'vidstack/bundle';
 	import { MediaPlayerElement } from 'vidstack/elements';
-	import type { VideoMimeType } from 'vidstack';
 
-	let { player, usingEmbed }: { player: YoutubePlayer; usingEmbed: boolean } = $props();
-
-	let srcs: { src: string; type: VideoMimeType; width: number; height: number }[] = $state([]);
+	let { player, usingEmbed }: { player: WatchPageVideo; usingEmbed: boolean } = $props();
 
 	let playerEl = $state() as MediaPlayerElement;
 	let audioEl = $state() as HTMLAudioElement;
@@ -15,17 +12,7 @@
 	let audioMuted = false;
 
 	onMount(async () => {
-		if (!player.sources || player.sources.length === 0) {
-			return;
-		} else {
-			srcs = player.sources.map((s) => ({
-				src: s.url,
-				type: s.format,
-				width: s.width,
-				height: s.height
-			}));
-		}
-
+		if (!player.videoFormats || player.videoFormats.length === 0) return;
 		usingEmbed = false;
 
 		if (playerEl) {
@@ -91,7 +78,7 @@
 	});
 </script>
 
-{#if usingEmbed}
+{#if usingEmbed || player.videoFormats.length === 0}
 	<media-player
 		storage="player-settings"
 		src={`https://youtu.be/${player.id}`}
@@ -108,7 +95,7 @@
 		bind:this={playerEl}
 		autoPlay={true}
 		storage="player-settings"
-		src={srcs}
+		src={player.videoFormats}
 		style="--plyr-border-radius: 0px;"
 	>
 		<media-provider></media-provider>
@@ -127,5 +114,11 @@
 		></media-plyr-layout>
 	</media-player>
 
-	<audio bind:this={audioEl} src={player.audio} preload="metadata" style="display: none"> </audio>
+	<audio
+		bind:this={audioEl}
+		src={player.audioFormats[player.audioFormats.length - 1].src}
+		preload="metadata"
+		style="display: none"
+	>
+	</audio>
 {/if}

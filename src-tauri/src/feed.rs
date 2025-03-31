@@ -7,14 +7,14 @@ use tauri::{async_runtime::Mutex, AppHandle, Emitter, State};
 use crate::{
     twitch::{self, stream::LiveNow},
     user::Platform,
-    youtube::{self, video::YouTubeVideo},
+    youtube::{self, video::FeedPageVideo},
     AppState,
 };
 
 #[derive(Serialize)]
 pub struct Feed {
     twitch: Option<Vec<LiveNow>>,
-    youtube: Option<Vec<YouTubeVideo>>,
+    youtube: Option<Vec<FeedPageVideo>>,
 }
 
 #[tauri::command]
@@ -60,7 +60,7 @@ pub async fn get_feed(
             "SELECT id, username, title, published_at, view_count FROM youtube ORDER BY published_at DESC LIMIT 50"
         };
 
-        let mut query_builder = sqlx::query_as::<_, YouTubeVideo>(query);
+        let mut query_builder = sqlx::query_as::<_, FeedPageVideo>(query);
 
         if let Some(last) = last_published_at {
             query_builder = query_builder.bind(last);
@@ -154,7 +154,7 @@ pub async fn refresh_feed(
             channel_ids.push(channel_id);
         }
 
-        let videos = match youtube::video::fetch_videos(channel_ids).await {
+        let videos = match youtube::video::fetch_feed_videos(channel_ids).await {
             Ok(videos) => videos,
             Err(err) => {
                 return Err(format!("Requesting videos: {err}"));

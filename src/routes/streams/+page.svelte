@@ -64,7 +64,7 @@
 					<div class="flex flex-col p-1">
 						<span class="text-lg font-bold">{live_now.username}</span>
 
-						<span class="text-sm text-neutral-400">{streamingFor(live_now.started_at)}</span>
+						<span class="text-sm text-neutral-400">{streamingFor(live_now.startedAt)}</span>
 					</div>
 				</button>
 			{/each}

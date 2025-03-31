@@ -15,6 +15,7 @@ const USHER_API: &str = "https://usher.ttvnw.net/api/channel/hls";
 #[derive(Serialize, Debug)]
 pub struct LiveNow {
     pub username: String,
+    #[serde(rename = "startedAt")]
     pub started_at: String,
 }
 

@@ -8,7 +8,7 @@
 
 	import { command, Platform, timeAgo } from '$lib';
 
-	let feed = $state([]) as YouTubeVideo[];
+	let feed = $state([]) as FeedVideo[];
 
 	let loading = $state(false);
 	let last_published_at = $state(0);
@@ -25,7 +25,7 @@
 		};
 
 		if (feed.length) {
-			req.lastPublishedAt = feed[feed.length - 1].published_at;
+			req.lastPublishedAt = feed[feed.length - 1].publishedAt;
 		} else {
 			delete req.lastPublishedAt;
 		}
@@ -35,7 +35,7 @@
 				return feed.youtube;
 			}
 
-			return [] as YouTubeVideo[];
+			return [] as FeedVideo[];
 		});
 
 		feed = [...feed, ...newVideos];
@@ -120,7 +120,7 @@
 
 						<span class="pb-2 text-xs">
 							{video.username}
-							{getViewCount(video.view_count)} - {timeAgo(video.published_at)}
+							{getViewCount(video.viewCount)} - {timeAgo(video.publishedAt)}
 						</span>
 					</div>
 				</button>

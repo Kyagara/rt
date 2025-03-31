@@ -24,6 +24,7 @@ lazy_static! {
             .build()
             .unwrap()
     );
+    pub static ref USING_BOTGUARD: Mutex<bool> = Mutex::new(false);
 }
 
 pub async fn build_client(storage_dir: &Path) -> Result<()> {
@@ -40,6 +41,9 @@ pub async fn build_client(storage_dir: &Path) -> Result<()> {
         .report()
         .storage_dir(storage_dir)
         .build_with_client(http_client)?;
+
+    let version = client.version_botguard().await;
+    *USING_BOTGUARD.lock().await = version.is_some();
 
     Ok(())
 }
