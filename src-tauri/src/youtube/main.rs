@@ -18,6 +18,7 @@ use super::channel;
 lazy_static! {
     pub static ref RP_CLIENT: Mutex<RustyPipe> = Mutex::new(
         RustyPipe::builder()
+            .unauthenticated()
             .no_reporter()
             .no_storage()
             .no_botguard()
@@ -38,7 +39,6 @@ pub async fn build_client(storage_dir: &Path) -> Result<()> {
 
     *client = RustyPipe::builder()
         .unauthenticated()
-        .report()
         .storage_dir(storage_dir)
         .build_with_client(http_client)?;
 
