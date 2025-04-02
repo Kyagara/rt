@@ -27,8 +27,8 @@ A Twitch and YouTube frontend written in Rust using Tauri and SvelteKit.
 
 ## Features
 
-- Import YouTube subscriptions.
-- Add users to your stream and video feeds.
+- Import YouTube subscriptions. (Accepts a `csv` file separated by Channel ID, URL, Title)
+- Add users to your stream and videos feeds.
 - Watch content in any of the available resolutions.
 - View Twitch chat with 7tv and BetterTTV emotes.
 - Block ads.
@@ -38,7 +38,7 @@ A Twitch and YouTube frontend written in Rust using Tauri and SvelteKit.
 
 > All installers (`exe`, `deb`, `rpm`) are provided in a small zip file.
 
-[Quick download.](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/bundles.zip)
+[Quick download.](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/bundles.zip) (does not require GitHub account).
 
 Github Actions builds are available [here](https://github.com/Kyagara/rt/actions).
 
@@ -65,7 +65,7 @@ If the app is not running, it will be started with the URL as an argument, if it
 - `rt://twitch/zfg1`
 - `rt://www.twitch.tv/zfg1`
 
-If using extensions like [LibRedirect](https://github.com/libredirect/browser_extension), you can set a frontend for YouTube like Invidious and set the instance URL to `rt://yt`. The same can be done for Twitch, you can set the frontend to SafeTwitch and set the instance URL to `rt://tw`.
+If you are using extensions like [LibRedirect](https://github.com/libredirect/browser_extension), you can set a frontend for YouTube like Invidious and set the instance URL to `rt://`. The same can be done for Twitch, you can set the frontend to SafeTwitch and set the instance URL to `rt://`.
 
 ### Paths
 
@@ -85,21 +85,23 @@ Logs:
 
 `YouTube`:  
 
+The feed uses YouTube's rss feed to retrieve videos to avoid rate limits, this sadly does not contain video duration.
+
 Using the excellent [RustyPipe](https://crates.io/crates/rustypipe) library to interact with YouTube, its recommended to install [rustypipe-botguard](https://crates.io/crates/rustypipe-botguard) to use a YouTube player instead of the embedded one.
 
 ```bash
 cargo install rustypipe-botguard
 ```
 
-The feed uses YouTube's rss feed to retrieve videos to avoid rate limits, this sadly does not contain video duration.
+The watch page will try to use RustyPipe to retrieve a YouTube player, if it fails, it will use Vidstack's YouTube [provider](https://vidstack.io/docs/player/api/providers/youtube/) to play videos via embeds, this fallback has the drawbacks of not being able to play videos that disallows embedding and not being able to select a video quality. You have the option to switch between them in the Watch page.
 
-The watch page will try to use RustyPipe to retrieve a YouTube player, if it fails, it will use Vidstack's YouTube [provider](https://vidstack.io/docs/player/api/providers/youtube/) to play videos via embeds, this fallback has the drawbacks of not being able to play videos that disallows embedding and not being able to select a video quality. You can also switch between them.
+The player currently doesn't show the quality selection correctly, as there are multiple codecs for the same quality, which will show duplicates.
 
 `Twitch`:
 
-The player uses a custom [hls.js](https://github.com/video-dev/hls.js/) loader that communicates with the backend to modify the streams m3u8 manifests, this is what allows for ad blocking as the backend can detect ads and switch to a backup stream until ads are over, this was inspired on [TwitchAdSolutions](https://github.com/pixeltris/TwitchAdSolutions) method of switching streams.
+The player uses a custom [hls.js](https://github.com/video-dev/hls.js/) loader that communicates with the backend to retrieve and modify the m3u8 manifests, this is what allows for ad blocking as the backend can detect ads and switch to a backup stream until ads are over, this was inspired by [TwitchAdSolutions](https://github.com/pixeltris/TwitchAdSolutions) method of switching streams.
 
-The backend uses queries from the Twitch API to retrieve user data and stream playback.
+The backend uses GQL queries from the internal Twitch API to retrieve user data and stream playback.
 
 ## TODO
 

@@ -154,28 +154,24 @@ pub async fn join_chat(
                 continue;
             }
 
-            let color = if let Some(color) = caps.name("color") {
-                color.as_str().to_string()
-            } else {
-                String::new()
+            let color = match caps.name("color") {
+                Some(color) => color.as_str().to_string(),
+                _ => String::new(),
             };
 
-            let display_name = if let Some(display_name) = caps.name("display_name") {
-                display_name.as_str().to_string()
-            } else {
-                continue;
+            let display_name = match caps.name("display_name") {
+                Some(display_name) => display_name.as_str().to_string(),
+                _ => continue,
             };
 
-            let first_msg = if let Some(first_msg) = caps.name("first_msg") {
-                first_msg.as_str() != "0"
-            } else {
-                false
+            let first_msg = match caps.name("first_msg") {
+                Some(first_msg) => first_msg.as_str() != "0",
+                _ => false,
             };
 
-            let content = if let Some(content) = caps.name("message") {
-                content.as_str().trim_end()
-            } else {
-                continue;
+            let content = match caps.name("message") {
+                Some(content) => content.as_str().trim_end(),
+                _ => continue,
             };
 
             let fragments = parse_chat_fragments(content, &user_emotes);

@@ -165,7 +165,9 @@ pub async fn fetch_video(video_id: &str) -> Result<WatchPageVideo, String> {
     let channel = get_channel(&details.channel);
     let chapters = get_chapters(&details.chapters);
 
-    let (video, audio, subtitles) = if !using_embed {
+    let (video, audio, subtitles) = if using_embed {
+        (Vec::new(), Vec::new(), Vec::new())
+    } else {
         let player = results
             .1
             .unwrap()
@@ -176,12 +178,10 @@ pub async fn fetch_video(video_id: &str) -> Result<WatchPageVideo, String> {
         let (video, audio) = get_player_formats(&player.video_only_streams, &player.audio_streams);
 
         (video, audio, subtitles)
-    } else {
-        (Vec::new(), Vec::new(), Vec::new())
     };
 
     let watch_page_video = WatchPageVideo {
-        id: details.id.clone(),
+        id: details.id,
         metadata,
         channel,
         chapters,

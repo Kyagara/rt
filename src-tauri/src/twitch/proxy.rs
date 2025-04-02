@@ -53,11 +53,13 @@ pub async fn proxy_stream(
 
     let mut stream_state = {
         let lock = STREAM_STATE.lock().await;
+
         let state = lock.get(&window_label).unwrap_or(&StreamState {
             using_backup: false,
             main_stream_url: None,
             backup_stream_url: None,
         });
+
         state.clone()
     };
 
@@ -169,7 +171,9 @@ async fn fetch_playlist_text(url: &str) -> Result<String> {
 async fn fetch_main_stream(username: &str, stream_state: &mut StreamState) -> Result<String> {
     let Some(main_url) = stream_state.main_stream_url.clone() else {
         error!("Main stream URL not found. Falling back to backup stream.");
+
         let backup_url = fetch_backup_stream_url(username).await?;
+
         return fetch_playlist_text(&backup_url).await;
     };
 
@@ -186,12 +190,9 @@ async fn fetch_main_stream(username: &str, stream_state: &mut StreamState) -> Re
 }
 
 async fn fetch_backup_stream_url(username: &str) -> Result<String> {
-    let url = match stream::fetch_stream_playback(username, true).await {
-        Ok(url) => url,
-        Err(err) => {
-            return Err(anyhow!("Fetching backup stream: {err}"));
-        }
-    };
+    let url = stream::fetch_stream_playback(username, true)
+        .await
+        .map_err(|err| anyhow!("Fetching backup stream: {err}"))?;
 
     let body = fetch_playlist_text(&url).await?;
 
