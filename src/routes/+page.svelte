@@ -47,6 +47,11 @@
 			return;
 		}
 
+		if (url.includes('www.youtube.com/feed/subscriptions')) {
+			changeView('videos');
+			return;
+		}
+
 		matches = url.match(youtubeReg);
 		if (matches && matches[1]) {
 			const videoId = matches[1];
