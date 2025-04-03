@@ -38,6 +38,7 @@
 			playerEl.addEventListener('pause', () => {
 				if (audioEl) {
 					audioEl.pause();
+					audioEl.currentTime = playerEl.currentTime;
 				}
 			});
 
