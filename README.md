@@ -1,5 +1,8 @@
 # RT (name pending)
 
+> [!NOTE]
+> I am currently working on a port to Electron, I will go into more details about it once it reaches parity with the current version.
+
 A Twitch and YouTube frontend written in Rust using Tauri and SvelteKit.
 
 <table>
