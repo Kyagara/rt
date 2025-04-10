@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - electron
+    paths:
+      - "**.ts"
+      - "**.js"
+      - "**.mjs"
+      - "**.json"
+      - "**.svelte"
+      - ".github/workflows/build.yaml"
+  workflow_dispatch:
 
 jobs:
   release:
@@ -28,6 +36,7 @@ jobs:
         run: npm ci
 
       - name: Run lint and typecheck
+        if: matrix.os == 'ubuntu-latest'
         run: npm run lint && npm run typecheck
 
       - name: Build for Linux
@@ -48,6 +57,7 @@ jobs:
         with:
           name: linux
           path: ./dist/rt-*-linux.deb
+          compression-level: 0
 
       - name: Upload macOS installer
         if: matrix.os == 'macos-latest'
@@ -55,6 +65,7 @@ jobs:
         with:
           name: mac
           path: ./dist/rt-*-mac.dmg
+          compression-level: 0
 
       - name: Upload Windows installer
         if: matrix.os == 'windows-latest'
@@ -62,3 +73,4 @@ jobs:
         with:
           name: windows
           path: ./dist/rt-*-win.exe
+          compression-level: 0

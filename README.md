@@ -38,11 +38,13 @@ A Twitch and YouTube frontend using Svelte and Electron.
 
 ## Download
 
-> All installers (`exe`, `deb`) are provided in a small zip file.
+> These are files from the latest successful build, they do not require a GitHub account to download.
 
-[Quick download.](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/bundles.zip) (does not require GitHub account).
+- [Windows](https://nightly.link/Kyagara/rt/workflows/build.yaml/electron/windows.zip)
+- [Linux](https://nightly.link/Kyagara/rt/workflows/build.yaml/electron/linux.zip)
+- [macOS](https://nightly.link/Kyagara/rt/workflows/build.yaml/electron/mac.zip)
 
-Github Actions builds are available [here](https://github.com/Kyagara/rt/actions).
+Github Actions artifacts are available [here](https://github.com/Kyagara/rt/actions).
 
 ## About
 
