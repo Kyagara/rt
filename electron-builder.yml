@@ -1,0 +1,43 @@
+appId: com.rt.app
+artifactName: rt-${version}-${os}.${ext}
+productName: rt
+npmRebuild: false
+electronLanguages:
+  - en-US
+
+directories:
+  buildResources: build
+asarUnpack:
+  - resources/**
+files:
+  - "!**/.vscode/*"
+  - "!src/*"
+  - "!electron.vite.config.ts"
+  - "!{.eslintignore,.prettierignore,.prettierrc,README.md}"
+  - "!{.env,.env.*,.npmrc}"
+  - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
+
+protocols:
+  - name: rt
+    schemes:
+      - rt
+
+# Platforms
+
+win:
+  executableName: rt
+  target: nsis
+nsis:
+  oneClick: false
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+  deleteAppDataOnUninstall: true
+
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: false
+
+linux:
+  target:
+    - deb

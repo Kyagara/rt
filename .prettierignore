@@ -1,7 +1,9 @@
 package-lock.json
-src-tauri
-.svelte-kit
-build
 node_modules
 .github
+out
+dist
 README.md
+LICENSE.md
+tsconfig.json
+tsconfig.*.json

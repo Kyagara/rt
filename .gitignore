@@ -1,8 +1,7 @@
-.vscode
-
 node_modules
-.svelte-kit
-build
-
-src-tauri/target
-src-tauri/gen/schemas
+dist
+out
+.DS_Store
+.eslintcache
+electron.vite.config.*.mjs
+*.log*
