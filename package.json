@@ -3,12 +3,15 @@
 	"version": "0.1.0",
 	"description": "An Electron application with Svelte and TypeScript",
 	"main": "./out/main/index.js",
-	"author": "Kyagara",
 	"license": "Apache-2.0",
-	"homepage": "https://github.com/kyagara/rt",
+	"homepage": "https://github.com/Kyagara/rt",
+	"author": {
+		"name": "Kyagara",
+		"email": "noreply@example.com"
+	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/kyagara/rt.git"
+		"url": "https://github.com/Kyagara/rt.git"
 	},
 	"scripts": {
 		"format": "prettier --plugin prettier-plugin-svelte --write .",

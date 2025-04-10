@@ -25,8 +25,9 @@ protocols:
 # Platforms
 
 win:
-  executableName: rt
-  target: nsis
+  target:
+    - nsis
+
 nsis:
   oneClick: false
   shortcutName: ${productName}
@@ -36,7 +37,10 @@ nsis:
 
 mac:
   entitlementsInherit: build/entitlements.mac.plist
+  identity: null
   notarize: false
+  target:
+    - dmg
 
 linux:
   target:
