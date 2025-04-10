@@ -43,21 +43,21 @@ jobs:
 
       - name: Upload Linux installer
         if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux
           path: ./dist/rt-*-linux.deb
 
       - name: Upload macOS installer
         if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mac
           path: ./dist/rt-*-mac.dmg
 
       - name: Upload Windows installer
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows
           path: ./dist/rt-*-win.exe
