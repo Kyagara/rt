@@ -2,7 +2,7 @@ appId: com.rt.app
 artifactName: rt-${version}-${os}.${ext}
 productName: rt
 npmRebuild: false
-publish: never
+publish: null
 electronLanguages:
   - en-US
 
