@@ -1,7 +1,7 @@
 # RT (name pending)
 
 > [!WARNING]
-> WIP! YouTube videos will run into 403 after some time, use embedded videos instead.
+> WIP! YouTube videos will run into 403 after some time, embedded videos are used by default for now.
 
 A Twitch and YouTube frontend using Svelte and Electron.
 
@@ -58,16 +58,16 @@ If the app is not running, it will be started with the URL as an argument, if it
 
 `YouTube`:
 
-- `rt://yt/dQw4w9WgXcQ`
-- `rt://youtube/dQw4w9WgXcQ`
-- `rt://www.youtube.com/watch?v=dQw4w9WgXcQ`
-- `rt://youtu.be/dQw4w9WgXcQ`
+- `rt://yt/{VIDEO_ID}`
+- `rt://youtube/{VIDEO_ID}`
+- `rt://www.youtube.com/watch?v={VIDEO_ID}`
+- `rt://youtu.be/{VIDEO_ID}`
 
 `Twitch`:
 
-- `rt://tw/zfg1`
-- `rt://twitch/zfg1`
-- `rt://www.twitch.tv/zfg1`
+- `rt://tw/{CHANNEL_NAME}`
+- `rt://twitch/{CHANNEL_NAME}`
+- `rt://www.twitch.tv/{CHANNEL_NAME}`
 
 If you are using extensions like [LibRedirect](https://github.com/libredirect/browser_extension), you can set a frontend for YouTube like Invidious and set the instance URL to `rt://`. The same can be done for Twitch, you can set the frontend to SafeTwitch and set the instance URL to `rt://`.
 
@@ -106,7 +106,7 @@ Uses GQL queries from the internal Twitch API to retrieve user data and stream p
 - Error handling.
 - Logging.
 - Maybe move to using classes.
-- Add back `rpm` to bundles.
+- Maybe build just flatpak for Linux.
 - Copy watch page content URL.
 - YouTube:
   - Fix URLs in descriptions, they currently open the URL in the app instead of the default browser, the links are also not formatted properly.
@@ -114,5 +114,4 @@ Uses GQL queries from the internal Twitch API to retrieve user data and stream p
   - Allow downloading videos (maybe using `yt-dlp`) and thumbnails.
   - Search for videos in the feed.
 - Twitch:
-  - Put the seek bar at the end when joining a stream, currently it is some seconds behind when first joining.
   - Button for adding/removing user from the watch page.
