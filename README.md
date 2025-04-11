@@ -36,7 +36,11 @@ A Twitch and YouTube frontend using Svelte and Electron.
 - Open videos or streams directly in the app using `rt:://` URLs.
 - Picture-in-picture (except for embedded videos).
 
-## Download
+## About
+
+Tested on Windows and Ubuntu. Not tested on macOS.
+
+### Download
 
 > These are files from the latest successful build, they do not require a GitHub account to download.
 
@@ -45,10 +49,6 @@ A Twitch and YouTube frontend using Svelte and Electron.
 - [macOS](https://nightly.link/Kyagara/rt/workflows/build.yaml/electron/mac.zip)
 
 Github Actions artifacts are available [here](https://github.com/Kyagara/rt/actions).
-
-## About
-
-Tested on Windows and Ubuntu. Not tested on macOS.
 
 ### Redirects
 
@@ -105,9 +105,7 @@ Uses GQL queries from the internal Twitch API to retrieve user data and stream p
 - Themes.
 - Error handling.
 - Logging.
-- Add a Settings page.
 - Maybe move to using classes.
-- Some customization options like player filling the watch page, only use embed for YouTube, etc.
 - Add back `rpm` to bundles.
 - Copy watch page content URL.
 - YouTube:

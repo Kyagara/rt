@@ -1,7 +1,8 @@
 export enum View {
 	Videos = 'videos',
 	Streams = 'streams',
-	Users = 'users'
+	Users = 'users',
+	Settings = 'settings'
 }
 
 export enum Platform {

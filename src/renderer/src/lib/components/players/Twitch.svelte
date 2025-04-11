@@ -227,8 +227,15 @@
 		player.addEventListener('provider-change', (event: MediaProviderChangeEvent) => {
 			const detail = event.detail as HLSProvider
 			if (detail?.type === 'hls' && detail.config) {
-				detail.config.pLoader = CustomPlaylistLoader
 				detail.config.lowLatencyMode = true
+
+				const settings = localStorage.getItem('settings')
+				if (settings) {
+					const data: Settings = JSON.parse(settings)
+					if (data.streams.blockAds) {
+						detail.config.pLoader = CustomPlaylistLoader
+					}
+				}
 			}
 		})
 

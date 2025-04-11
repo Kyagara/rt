@@ -4,16 +4,17 @@
 	type VideoWatchPageProps = {
 		player: WatchPageVideo
 		usingEmbed: boolean
+		autoPlay: boolean
 	}
 
-	let { player, usingEmbed }: VideoWatchPageProps = $props()
+	let { player, usingEmbed, autoPlay }: VideoWatchPageProps = $props()
 </script>
 
 {#if usingEmbed}
 	<media-player
 		storage="player-settings"
 		src={`https://youtu.be/${player.id}`}
-		autoPlay={true}
+		{autoPlay}
 		streamType="on-demand"
 		style="--plyr-border-radius: 0px;"
 	>
@@ -22,7 +23,7 @@
 		<media-plyr-layout displayDuration={true}></media-plyr-layout>
 	</media-player>
 {:else}
-	<media-player autoPlay={true} storage="player-settings" style="--plyr-border-radius: 0px;">
+	<media-player {autoPlay} storage="player-settings" style="--plyr-border-radius: 0px;">
 		<media-provider>
 			{#if player.isLive}
 				{#if player.live.hls}

@@ -40,6 +40,16 @@ export function changeView(newViewID: View, navigateURL = true, path?: string): 
 				navigate('/users')
 			}
 			break
+
+		case View.Settings:
+			localStorage.setItem('lastView', newViewID)
+
+			currentView.id = View.Settings
+			currentView.name = 'Settings'
+			if (navigateURL) {
+				navigate('/settings')
+			}
+			break
 	}
 }
 

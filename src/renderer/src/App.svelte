@@ -9,6 +9,8 @@
 	import Titlebar from '$lib/components/Titlebar.svelte'
 
 	import { changeView, currentView } from '$lib/state/View.svelte'
+	import { defaultSettings } from './lib'
+	import { View } from '$shared/enums'
 
 	// Pages
 	import Videos from './pages/videos/Videos.svelte'
@@ -18,7 +20,7 @@
 	import StreamWatchPage from './pages/streams/Watch.svelte'
 
 	import Users from './pages/Users.svelte'
-	import { View } from '$shared/enums'
+	import Settings from './pages/Settings.svelte'
 
 	// Prevent the context menu from appearing
 	function handleContextMenu(event: MouseEvent) {
@@ -28,6 +30,12 @@
 	}
 
 	onMount(() => {
+		const storedSettings = localStorage.getItem('settings')
+		if (!storedSettings) {
+			localStorage.setItem('settings', JSON.stringify(defaultSettings()))
+			return
+		}
+
 		const url = URL.parse(window.location.href)
 		const view = url.searchParams.get('view') as View
 		const path = url.searchParams.get('path') ?? ''
@@ -54,20 +62,22 @@
 		<Sidebar />
 
 		<main class="flex h-full min-h-0 w-full overflow-auto">
-			{#if currentView.route.startsWith('/streams')}
-				{#if currentView.route.startsWith('/streams/watch')}
-					<StreamWatchPage />
-				{:else}
-					<Streams />
-				{/if}
-			{:else if currentView.route.startsWith('/videos')}
+			{#if currentView.id === View.Videos}
 				{#if currentView.route.startsWith('/videos/watch')}
 					<VideoWatchPage />
 				{:else}
 					<Videos />
 				{/if}
-			{:else}
+			{:else if currentView.id === View.Streams}
+				{#if currentView.route.startsWith('/streams/watch')}
+					<StreamWatchPage />
+				{:else}
+					<Streams />
+				{/if}
+			{:else if currentView.id === View.Users}
 				<Users />
+			{:else}
+				<Settings />
 			{/if}
 		</main>
 	</div>

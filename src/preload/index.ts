@@ -45,7 +45,8 @@ try {
 	})
 
 	contextBridge.exposeInMainWorld('video', {
-		get: (videoID: string) => ipcRenderer.invoke('video:get', videoID),
+		get: (videoID: string, retrievePlayer: boolean) =>
+			ipcRenderer.invoke('video:get', videoID, retrievePlayer),
 		import: () => ipcRenderer.invoke('video:import')
 	})
 } catch (err) {

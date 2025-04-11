@@ -30,7 +30,7 @@ declare global {
 		}
 
 		video: {
-			get: (videoID: string) => Promise<WatchPageVideo>
+			get: (videoID: string, retrievePlayer: boolean) => Promise<WatchPageVideo>
 			import: () => Promise<number>
 		}
 	}

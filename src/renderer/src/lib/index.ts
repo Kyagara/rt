@@ -16,6 +16,18 @@ export function getAvatarUrl(platform: Platform, username: string, avatar: Uint8
 	return url
 }
 
+export function defaultSettings(): Settings {
+	return {
+		videos: {
+			autoplay: true,
+			useEmbed: true
+		},
+		streams: {
+			blockAds: true
+		}
+	}
+}
+
 export function timeAgo(timestamp: number): string {
 	const now = Math.floor(Date.now() / 1000)
 	const secondsAgo = now - timestamp

@@ -7,6 +7,16 @@ declare global {
 		description: string
 	}
 
+	type Settings = {
+		videos: {
+			autoplay: boolean
+			useEmbed: boolean
+		}
+		streams: {
+			blockAds: boolean
+		}
+	}
+
 	type User = {
 		id: string
 		// Used in links like 'twitch.tv/username' or youtube.com/@username'
@@ -38,8 +48,8 @@ declare global {
 		id: string
 		isLive: boolean
 		live: WatchPageVideoLive
-		channel: Channel
-		info: Info
+		channel: WatchPageVideoChannel
+		info: WatchPageVideoInfo
 		dash?: string
 	}
 

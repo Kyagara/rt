@@ -63,5 +63,8 @@ ipcMain.handle(
 ipcMain.handle('stream:emotes', async (_event, username) => await getUserEmotes(username))
 
 // Video
-ipcMain.handle('video:get', async (_event, videoID) => await fetchVideo(videoID))
+ipcMain.handle(
+	'video:get',
+	async (_event, videoID, retrievePlayer) => await fetchVideo(videoID, retrievePlayer)
+)
 ipcMain.handle('video:import', async () => await importSubscriptions())

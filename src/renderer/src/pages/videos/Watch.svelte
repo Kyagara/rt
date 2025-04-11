@@ -8,7 +8,8 @@
 	import { getAvatarUrl } from '$lib/index'
 
 	let player = $state() as WatchPageVideo
-	let usingEmbed = $state(true)
+	let usingEmbed = $state(false)
+	let autoPlay = $state(true)
 
 	let subscribed = $state(false)
 
@@ -30,6 +31,16 @@
 		}
 	}
 
+	async function getPossibleUser() {
+		const user = await window.user.get(Platform.YouTube, null, player.channel.id)
+		if (user) {
+			subscribed = true
+			if (player.channel.avatar && !user.avatar) return
+
+			player.channel.avatar = getAvatarUrl(Platform.YouTube, player.channel.name, user.avatar)
+		}
+	}
+
 	onMount(async () => {
 		const routeURL = new URL(window.location.href)
 		const searchParams = routeURL.searchParams.get('id')
@@ -44,24 +55,35 @@
 			videoID = searchParams.replace('watch?v=', '')
 		}
 
-		try {
-			const data = await window.video.get(videoID)
-			player = data
+		const settings = localStorage.getItem('settings')
+		if (settings) {
+			const data: Settings = JSON.parse(settings)
+			autoPlay = data.videos.autoplay
+			usingEmbed = data.videos.useEmbed
+		}
 
+		if (usingEmbed) {
+			try {
+				const data = await window.video.get(videoID, false)
+				player = data
+			} catch (err) {
+				notify('Error fetching basic video info', err)
+			}
+
+			await getPossibleUser()
+			loading = false
+			return
+		}
+
+		try {
+			const data = await window.video.get(videoID, true)
+			player = data
 			usingEmbed = false
 		} catch (err) {
 			notify('Error fetching player', err)
-			usingEmbed = true
 		}
 
-		const user = await window.user.get(Platform.YouTube, null, player.channel.id)
-		if (user) {
-			subscribed = true
-			if (player.channel.avatar && !user.avatar) return
-
-			player.channel.avatar = getAvatarUrl(Platform.YouTube, player.channel.name, user.avatar)
-		}
-
+		await getPossibleUser()
 		loading = false
 	})
 </script>
@@ -79,7 +101,7 @@
 		<div class="h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)] w-full bg-black">
 			{#key usingEmbed}
 				{#if player && player.id}
-					<YouTubePlayer {player} {usingEmbed} />
+					<YouTubePlayer {player} {usingEmbed} {autoPlay} />
 				{/if}
 			{/key}
 		</div>
@@ -93,7 +115,7 @@
 						<span class="text-xs">
 							{player.isLive ? 'Live now' : player.info.published_date_txt} - {player.info
 								.view_count
-								? `${player.info.view_count} views`
+								? `${player.info.view_count.toLocaleString()} views`
 								: ''}
 						</span>
 					</div>

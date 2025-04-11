@@ -19,20 +19,49 @@ export async function fetchFeedVideos(channelIDs: string[]): Promise<FeedVideo[]
 	return videos
 }
 
-const yt = Innertube.create({ retrieve_player: true })
+const ytPlayer = Innertube.create({ retrieve_player: true })
+const yt = Innertube.create({ retrieve_player: false })
 
-export async function fetchVideo(videoID: string): Promise<WatchPageVideo> {
+export async function fetchVideo(
+	videoID: string,
+	retrievePlayer: boolean
+): Promise<WatchPageVideo> {
 	if (!videoID) throw new Error('Video ID not provided')
 
-	const client = await yt
+	if (!retrievePlayer) {
+		const client = await yt
+		const videoInfo = await client.getInfo(videoID)
 
+		const info = {
+			published_date_txt: videoInfo.primary_info?.relative_date.toString() ?? '',
+			description: videoInfo.secondary_info?.description.toHTML() ?? '',
+			title: videoInfo.basic_info?.title ?? '',
+			view_count: Number(videoInfo.basic_info?.view_count ?? 0)
+		}
+
+		const channel: WatchPageVideoChannel = {
+			id: videoInfo.basic_info.channel?.id ?? '',
+			name: videoInfo.basic_info.channel?.name ?? '',
+			avatar: videoInfo.secondary_info?.owner?.author.thumbnails[0].url ?? ''
+		}
+
+		return {
+			id: videoID,
+			isLive: false,
+			live: {},
+			channel,
+			info
+		}
+	}
+
+	const client = await ytPlayer
 	const videoInfo = await client.getInfo(videoID)
 
 	const info = {
 		published_date_txt: videoInfo.primary_info?.relative_date.toString() ?? '',
 		description: videoInfo.secondary_info?.description.toHTML() ?? '',
 		title: videoInfo.primary_info?.title.toString() ?? '',
-		view_count: Number(videoInfo.primary_info?.view_count?.original_view_count ?? 0)
+		view_count: Number(videoInfo.basic_info?.view_count ?? 0)
 	}
 
 	const channel: WatchPageVideoChannel = {

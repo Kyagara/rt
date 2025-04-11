@@ -11,12 +11,12 @@ directories:
 asarUnpack:
   - resources/**
 files:
-  - "!**/.vscode/*"
-  - "!src/*"
-  - "!electron.vite.config.ts"
-  - "!{.eslintignore,.prettierignore,.prettierrc,README.md}"
-  - "!{.env,.env.*,.npmrc}"
-  - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}"
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.ts'
+  - '!{.eslintignore,.prettierignore,.prettierrc,README.md}'
+  - '!{.env,.env.*,.npmrc}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 
 protocols:
   - name: rt
