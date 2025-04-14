@@ -66,6 +66,48 @@ export type UseLiveResponse = {
 	}
 }
 
+export class StreamInfoQuery {
+	query: string
+
+	constructor(username: string) {
+		this.query = `query {
+			user(login: "${username}") {
+				stream {
+					title
+					type
+					viewersCount
+					createdAt
+					game {
+						id
+						name
+					}
+				}
+			}
+		}`
+	}
+
+	static new(username: string): StreamInfoQuery {
+		return new StreamInfoQuery(username)
+	}
+}
+
+export type StreamInfoResponse = {
+	data: {
+		user: {
+			stream: {
+				title: string
+				type: string
+				viewersCount: number
+				createdAt: string
+				game: {
+					id: string
+					name: string
+				} | null
+			} | null
+		} | null
+	}
+}
+
 export class PlaybackAccessTokenQuery {
 	operationName: string
 	query: string

@@ -41,7 +41,8 @@ try {
 
 	contextBridge.exposeInMainWorld('stream', {
 		get: (username: string, backup: boolean) => ipcRenderer.invoke('stream:get', username, backup),
-		emotes: (username: string) => ipcRenderer.invoke('stream:emotes', username)
+		emotes: (username: string) => ipcRenderer.invoke('stream:emotes', username),
+		info: (username: string) => ipcRenderer.invoke('stream:info', username)
 	})
 
 	contextBridge.exposeInMainWorld('video', {

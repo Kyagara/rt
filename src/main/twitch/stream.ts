@@ -2,11 +2,11 @@ import {
 	PlaybackAccessTokenQuery,
 	PlaybackAccessTokenResponse,
 	sendQuery,
+	StreamInfoQuery,
+	StreamInfoResponse,
 	UseLiveQuery,
 	UseLiveResponse
 } from './query'
-
-const USHER_API: string = 'https://usher.ttvnw.net/api/channel/hls'
 
 export async function fetchLiveNow(usernames: string[]): Promise<LiveNow[]> {
 	if (usernames.length === 0) {
@@ -60,7 +60,7 @@ export async function fetchStream(username: string, backup: boolean): Promise<st
 
 	const streamPlayback = response[1].data.streamPlaybackAccessToken
 
-	let url = `${USHER_API}/${username}.m3u8`
+	let url = `https://usher.ttvnw.net/api/channel/hls/${username}.m3u8`
 
 	const randomNumber = Math.floor(Math.random() * 10_000_000) + 1_000_000
 
@@ -71,4 +71,42 @@ export async function fetchStream(username: string, backup: boolean): Promise<st
 	}
 
 	return url
+}
+
+export async function fetchStreamInfo(username: string): Promise<StreamInfo> {
+	const gql = StreamInfoQuery.new(username)
+
+	const response = await sendQuery<StreamInfoResponse>(JSON.stringify(gql))
+
+	if (!response.data.user) {
+		throw new Error(`User '${username}' not found`)
+	}
+
+	if (!response.data.user.stream) {
+		throw new Error(`User '${username}' is not live`)
+	}
+
+	const stream = response.data.user.stream
+
+	let box_art = 'https://static-cdn.jtvnw.net/ttv-static/404_boxart-144x192.jpg'
+	if (stream.game && stream.game.id) {
+		const box_art_url = `https://static-cdn.jtvnw.net/ttv-boxart/${stream.game.id}-144x192.jpg`
+
+		try {
+			const response = await fetch(box_art_url)
+			if (response.redirected) {
+				box_art = `https://static-cdn.jtvnw.net/ttv-boxart/${stream.game.id}_IGDB-144x192.jpg`
+			}
+		} catch (err) {
+			console.error(`Error fetching box art: ${err}`)
+		}
+	}
+
+	return {
+		title: stream.title,
+		game: stream.game ? stream.game.name : 'N/A',
+		box_art: box_art,
+		started_at: stream.createdAt,
+		viewer_count: stream.viewersCount
+	}
 }
