@@ -3,7 +3,7 @@
 > [!WARNING]
 > WIP! YouTube videos will run into 403 after some time, embedded videos are used by default for now.
 
-A Twitch and YouTube frontend using Svelte and Electron.
+A Twitch and YouTube frontend app using Svelte and Electron.
 
 <table>
     <tr>
@@ -44,11 +44,11 @@ Tested on Windows and Ubuntu. Not tested on macOS.
 
 > These are files from the latest successful build, they do not require a GitHub account to download.
 
-- [Windows](https://nightly.link/Kyagara/rt/workflows/build.yaml/electron/windows.zip)
-- [Linux](https://nightly.link/Kyagara/rt/workflows/build.yaml/electron/linux.zip)
-- [macOS](https://nightly.link/Kyagara/rt/workflows/build.yaml/electron/mac.zip)
+- [Windows](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/windows.zip)
+- [Linux](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/linux.zip)
+- [macOS](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/mac.zip)
 
-Github Actions artifacts are available [here](https://github.com/Kyagara/rt/actions).
+You can check for possible older artifacts [here](https://github.com/Kyagara/rt/actions).
 
 ### Redirects
 
@@ -89,7 +89,7 @@ Logs:
 
 `YouTube`:  
 
-The feed uses YouTube's rss feed to retrieve videos to avoid rate limits, this sadly does not contain video duration or if the content is a livestream.
+The feed uses YouTube's rss feed to retrieve videos to avoid rate limits, this sadly does not contain video duration.
 
 The watch page will try to retrieve a YouTube player using [YouTube.js](https://github.com/LuanRT/YouTube.js), if it fails, it will use Vidstack's YouTube [provider](https://vidstack.io/docs/player/api/providers/youtube/) to play videos via embeds, this fallback has the drawbacks of not being able to play videos that disallows embedding and not being able to select a video quality. You have the option to switch between them.
 
@@ -110,8 +110,10 @@ Uses GQL queries from the internal Twitch API to retrieve user data and stream p
 - Copy watch page content URL.
 - YouTube:
   - Fix URLs in descriptions, they currently open the URL in the app instead of the default browser, the links are also not formatted properly.
+  - Maybe add tabs for livestreams and shorts.
   - Add YouTube channel page with video search.
   - Allow downloading videos (maybe using `yt-dlp`) and thumbnails.
   - Search for videos in the feed.
 - Twitch:
   - Button for adding/removing user from the watch page.
+  - Stream information such as game being played, title, etc.
