@@ -27,6 +27,7 @@ declare global {
 		stream: {
 			get: (username: string, backup: boolean) => Promise<string>
 			emotes: (username: string) => Promise<Record<string, Emote>>
+			info: (username: string) => Promise<StreamInfo>
 		}
 
 		video: {

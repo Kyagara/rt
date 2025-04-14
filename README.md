@@ -116,4 +116,3 @@ Uses GQL queries from the internal Twitch API to retrieve user data and stream p
   - Search for videos in the feed.
 - Twitch:
   - Button for adding/removing user from the watch page.
-  - Stream information such as game being played, title, etc.

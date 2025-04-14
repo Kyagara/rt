@@ -36,6 +36,14 @@ declare global {
 		started_at: string
 	}
 
+	type StreamInfo = {
+		title: string
+		game: string
+		box_art: string
+		started_at: string
+		viewer_count: number
+	}
+
 	type FeedVideo = {
 		id: string
 		username: string

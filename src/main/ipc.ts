@@ -2,7 +2,7 @@ import { BrowserWindow, ipcMain } from 'electron'
 
 import { getUser, listUsers, addUser, removeUser } from './user'
 import { getFeed, refreshFeed } from './feed'
-import { fetchStream } from './twitch/stream'
+import { fetchStream, fetchStreamInfo } from './twitch/stream'
 import { getUserEmotes } from './twitch/emote'
 import { fetchVideo } from './youtube/video'
 import { importSubscriptions } from './youtube/channel'
@@ -61,6 +61,7 @@ ipcMain.handle(
 	async (_event, username, backup) => await fetchStream(username, backup)
 )
 ipcMain.handle('stream:emotes', async (_event, username) => await getUserEmotes(username))
+ipcMain.handle('stream:info', async (_event, username) => await fetchStreamInfo(username))
 
 // Video
 ipcMain.handle(
