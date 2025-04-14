@@ -33,6 +33,8 @@
 	}
 
 	async function updateStreamInfo() {
+		if (!url) return
+
 		try {
 			streamInfo = await window.stream.info(username)
 		} catch {
