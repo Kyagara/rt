@@ -36,7 +36,7 @@ function createWindow(url?: string): void {
 	if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
 		window.loadURL(`${process.env['ELECTRON_RENDERER_URL']}?view=${view}&path=${path}`)
 	} else {
-		const query: Record<string, string> = { view: view, path: path ?? '' }
+		const query: Record<string, string> = { view: view, path: path }
 		window.loadFile(join(__dirname, '../renderer/index.html'), { query: query })
 	}
 
@@ -118,7 +118,8 @@ if (!gotTheLock) {
 	})
 
 	app.whenReady().then(() => {
-		createWindow()
+		const url = process.argv.find((arg) => arg.startsWith('rt://'))
+		createWindow(url)
 	})
 
 	app.on('window-all-closed', () => {

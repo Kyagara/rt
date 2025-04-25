@@ -40,14 +40,16 @@
 		const view = url.searchParams.get('view') as View
 		const path = url.searchParams.get('path') ?? ''
 
-		const lastView = localStorage.getItem('lastView') as View
-
-		if (lastView !== view && !path) {
-			changeView(lastView)
+		if (path) {
+			changeView(view, true, path)
 			return
 		}
 
-		changeView(view, true, path)
+		const lastView = localStorage.getItem('lastView') as View
+
+		if (lastView !== view) {
+			changeView(lastView)
+		}
 	})
 </script>
 

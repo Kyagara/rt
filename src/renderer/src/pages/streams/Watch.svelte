@@ -62,7 +62,7 @@
 				subscribed = false
 			} else {
 				const deleted = await window.user.add(Platform.Twitch, username)
-				notify(`Subscribed to ${deleted}`)
+				notify(`Subscribed to ${deleted.username}`)
 				subscribed = true
 			}
 		} catch (err) {
