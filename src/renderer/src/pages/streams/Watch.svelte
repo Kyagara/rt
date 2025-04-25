@@ -4,10 +4,12 @@
 	import TwitchPlayer from '$lib/components/players/Twitch.svelte'
 	import Chat from '$lib/components/Chat.svelte'
 	import { notify } from '$lib/components/Notification.svelte'
+	import { Platform } from '$shared/enums'
 
 	let username = $state('')
 	let url = $state('')
 	let streamInfo = $state() as StreamInfo
+	let subscribed = $state(false)
 
 	let loading = $state(true)
 
@@ -52,6 +54,29 @@
 		return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 	}
 
+	async function handleSubscription() {
+		try {
+			if (subscribed) {
+				const deleted = await window.user.remove(Platform.Twitch, username)
+				notify(`Unsubscribed from ${deleted}`)
+				subscribed = false
+			} else {
+				const deleted = await window.user.add(Platform.Twitch, username)
+				notify(`Subscribed to ${deleted}`)
+				subscribed = true
+			}
+		} catch (err) {
+			notify('Error updating subscription', err)
+		}
+	}
+
+	async function getPossibleUser() {
+		const user = await window.user.get(Platform.Twitch, username)
+		if (user) {
+			subscribed = true
+		}
+	}
+
 	onMount(async () => {
 		const routeURL = new URL(window.location.href)
 		username = routeURL.searchParams.get('username')!
@@ -59,6 +84,8 @@
 		try {
 			const data = await window.stream.get(username, false)
 			url = data
+
+			await getPossibleUser()
 		} catch {
 			notify('Stream not found')
 			loading = false
@@ -144,6 +171,15 @@
 				<span class="text-xs">
 					{formatTime(elapsedSeconds)} - {streamInfo.viewer_count} viewers
 				</span>
+			</div>
+
+			<div class="flex">
+				<button
+					class="cursor-pointer border border-white/25 p-1 px-2 hover:bg-neutral-400/50"
+					onclick={async () => await handleSubscription()}
+				>
+					{subscribed ? 'SUBSCRIBED' : 'SUBSCRIBE'}
+				</button>
 			</div>
 
 			<div class="flex items-center gap-2">

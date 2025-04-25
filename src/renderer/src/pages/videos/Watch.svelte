@@ -27,7 +27,7 @@
 				subscribed = true
 			}
 		} catch (err) {
-			notify(`Error subscribing to ${player.channel.name}`, err)
+			notify('Error updating subscription', err)
 		}
 	}
 
@@ -128,7 +128,7 @@
 						</span>
 
 						<button
-							class="cursor-pointer p-1 px-2 hover:bg-neutral-400/50"
+							class="cursor-pointer border border-white/25 p-1 px-2 hover:bg-neutral-400/50"
 							onclick={async () => await handleSubscription()}
 						>
 							{subscribed ? 'SUBSCRIBED' : 'SUBSCRIBE'}
