@@ -96,6 +96,8 @@ export async function fetchStreamInfo(username: string): Promise<StreamInfo> {
 			const response = await fetch(box_art_url)
 			if (response.redirected) {
 				box_art = `https://static-cdn.jtvnw.net/ttv-boxart/${stream.game.id}_IGDB-144x192.jpg`
+			} else if (response.status === 200) {
+				box_art = box_art_url
 			}
 		} catch (err) {
 			console.error(`Error fetching box art: ${err}`)
