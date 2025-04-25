@@ -111,8 +111,8 @@ Uses GQL queries from the internal Twitch API to retrieve user data and stream p
 - YouTube:
   - Fix URLs in descriptions, they currently open the URL in the app instead of the default browser, the links are also not formatted properly.
   - Maybe add tabs for livestreams and shorts.
-  - Add YouTube channel page with video search.
+  - Add YouTube channel page.
   - Allow downloading videos (maybe using `yt-dlp`) and thumbnails.
-  - Search for videos in the feed.
+  - Video searching.
 - Twitch:
   - Button for adding/removing user from the watch page.
