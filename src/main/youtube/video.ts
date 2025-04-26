@@ -33,15 +33,20 @@ export async function fetchVideo(
 		const videoInfo = await client.getInfo(videoID)
 
 		const info = {
-			published_date_txt: videoInfo.primary_info?.relative_date.toString() ?? '',
-			description: videoInfo.secondary_info?.description.toHTML() ?? '',
-			title: videoInfo.basic_info?.title ?? '',
-			view_count: Number(videoInfo.basic_info?.view_count ?? 0)
+			published_date_txt: videoInfo.primary_info?.published.toString() ?? '',
+			description: modifyRedirects(videoInfo.secondary_info?.description.toHTML() ?? ''),
+			title: videoInfo.primary_info?.title.toString() ?? '',
+			view_count: Number(
+				videoInfo.primary_info?.view_count?.view_count
+					.toString()
+					.replace(' views', '')
+					.replaceAll(',', '') ?? '0'
+			)
 		}
 
 		const channel: WatchPageVideoChannel = {
-			id: videoInfo.basic_info.channel?.id ?? '',
-			name: videoInfo.basic_info.channel?.name ?? '',
+			id: videoInfo.secondary_info?.owner?.author.id ?? '',
+			name: videoInfo.secondary_info?.owner?.author.name ?? '',
 			avatar: videoInfo.secondary_info?.owner?.author.thumbnails[0].url ?? ''
 		}
 
@@ -58,15 +63,20 @@ export async function fetchVideo(
 	const videoInfo = await client.getInfo(videoID)
 
 	const info = {
-		published_date_txt: videoInfo.primary_info?.relative_date.toString() ?? '',
-		description: videoInfo.secondary_info?.description.toHTML() ?? '',
+		published_date_txt: videoInfo.primary_info?.published.toString() ?? '',
+		description: modifyRedirects(videoInfo.secondary_info?.description.toHTML() ?? ''),
 		title: videoInfo.primary_info?.title.toString() ?? '',
-		view_count: Number(videoInfo.basic_info?.view_count ?? 0)
+		view_count: Number(
+			videoInfo.primary_info?.view_count?.view_count
+				.toString()
+				.replace(' views', '')
+				.replaceAll(',', '') ?? '0'
+		)
 	}
 
 	const channel: WatchPageVideoChannel = {
-		id: videoInfo.basic_info.channel?.id ?? '',
-		name: videoInfo.basic_info.channel?.name ?? '',
+		id: videoInfo.secondary_info?.owner?.author.id ?? '',
+		name: videoInfo.secondary_info?.owner?.author.name ?? '',
 		avatar: videoInfo.secondary_info?.owner?.author.thumbnails[0].url ?? ''
 	}
 
@@ -102,4 +112,20 @@ export async function fetchVideo(
 	}
 
 	return video
+}
+
+const REDIRECT_REGEX = new RegExp(
+	/(<a\b[^>]*\bhref\s*=\s*)(['"])(https:\/\/www\.youtube\.com\/redirect\?[^'"]+)\2/gi
+)
+
+function modifyRedirects(html: string): string {
+	const attrs = ` style="text-decoration: underline; color: rgb(59, 130, 246); target='_blank'"`
+
+	return html.replace(REDIRECT_REGEX, (all, prefix, quote, fullRedirectUrl) => {
+		const m = fullRedirectUrl.match(/[?&]q=([^&]+)/)
+		if (!m) return all
+
+		const realUrl = decodeURIComponent(m[1])
+		return prefix + quote + realUrl + quote + attrs
+	})
 }

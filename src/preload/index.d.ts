@@ -13,7 +13,7 @@ declare global {
 		}
 
 		user: {
-			add: (platform: Platform, username: string, id?: string) => Promise<User | null>
+			add: (platform: Platform, username?: string, id?: string) => Promise<User | null>
 			get: (platform: Platform, username?: string, id?: string) => Promise<User | null>
 			list: (platform?: Platform) => Promise<User[]>
 			remove: (platform: Platform, username: string) => Promise<string | null>

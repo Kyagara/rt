@@ -15,6 +15,16 @@
 
 	let loading = $state(true)
 
+	function copyURL() {
+		navigator.clipboard.writeText(`https://youtu.be/${player.id}`)
+		notify('URL copied to clipboard')
+	}
+
+	function toggleEmbed() {
+		usingEmbed = !usingEmbed
+		notify('Switched to ' + (usingEmbed ? 'player' : 'embed'))
+	}
+
 	async function handleSubscription() {
 		try {
 			if (subscribed) {
@@ -22,8 +32,8 @@
 				notify(`Unsubscribed from ${username}`)
 				subscribed = false
 			} else {
-				const username = await window.user.add(Platform.YouTube, null, player.channel.id)
-				notify(`Subscribed to ${username}`)
+				const user = await window.user.add(Platform.YouTube, null, player.channel.id)
+				notify(`Subscribed to ${user.username}`)
 				subscribed = true
 			}
 		} catch (err) {
@@ -32,6 +42,8 @@
 	}
 
 	async function getPossibleUser() {
+		if (!player.channel.id) return
+
 		const user = await window.user.get(Platform.YouTube, null, player.channel.id)
 		if (user) {
 			subscribed = true
@@ -66,11 +78,12 @@
 			try {
 				const data = await window.video.get(videoID, false)
 				player = data
+
+				await getPossibleUser()
 			} catch (err) {
-				notify('Error fetching basic video info', err)
+				notify('Error fetching video', err)
 			}
 
-			await getPossibleUser()
 			loading = false
 			return
 		}
@@ -79,11 +92,12 @@
 			const data = await window.video.get(videoID, true)
 			player = data
 			usingEmbed = false
+
+			await getPossibleUser()
 		} catch (err) {
 			notify('Error fetching player', err)
 		}
 
-		await getPossibleUser()
 		loading = false
 	})
 </script>
@@ -108,30 +122,34 @@
 
 		<div class="flex w-full flex-col gap-4 p-2">
 			<div class="flex gap-4">
-				<div class="flex flex-col gap-2">
+				<div class="flex flex-col gap-4">
 					<div class="flex-col">
 						<h1 class="text-lg font-bold">{player.info.title}</h1>
 
 						<span class="text-xs">
-							{player.isLive ? 'Live now' : player.info.published_date_txt} - {player.info
-								.view_count
-								? `${player.info.view_count.toLocaleString()} views`
-								: ''}
+							{player.isLive ? 'Live now' : player.info.published_date_txt} - {player.info.view_count.toLocaleString()}
+							views
 						</span>
 					</div>
 
 					<div class="flex items-center gap-2">
-						<img src={player.channel.avatar} alt={player.channel.name} width={48} height={64} />
+						<img
+							src={player.channel.avatar}
+							alt={player.channel.name}
+							width={48}
+							height={64}
+							class="border border-white/25"
+						/>
 
 						<span class="font-semibold">
 							{player.channel.name}
 						</span>
 
 						<button
-							class="cursor-pointer border border-white/25 p-1 px-2 hover:bg-neutral-400/50"
+							class="cursor-pointer border border-white/25 p-1 px-2 hover:bg-red-400/80"
 							onclick={async () => await handleSubscription()}
 						>
-							{subscribed ? 'SUBSCRIBED' : 'SUBSCRIBE'}
+							{subscribed ? 'Remove user' : 'Add user'}
 						</button>
 					</div>
 				</div>
@@ -140,10 +158,37 @@
 
 				<div>
 					<button
-						class="bg-neutral-800 p-1 hover:bg-neutral-600"
-						onclick={() => (usingEmbed = !usingEmbed)}
+						class="cursor-pointer bg-neutral-800 p-2 hover:bg-neutral-600"
+						title="Copy video URL"
+						onclick={copyURL}
 					>
-						{usingEmbed ? 'Switch to player' : 'Switch to embed'}
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="1.1rem"
+							height="1.1rem"
+							viewBox="0 0 2048 2048"
+							><!-- Icon from Fluent UI MDL2 by Microsoft Corporation - https://github.com/microsoft/fluentui/blob/master/packages/react-icons-mdl2/LICENSE --><path
+								fill="currentColor"
+								d="M1920 805v1243H640v-384H128V0h859l384 384h128zm-384-37h165l-165-165zM640 384h549L933 128H256v1408h384zm1152 512h-384V512H768v1408h1024z"
+							/></svg
+						>
+					</button>
+
+					<button
+						class="cursor-pointer bg-neutral-800 p-2 hover:bg-neutral-600"
+						title={usingEmbed ? 'Switch to player' : 'Switch to embed'}
+						onclick={toggleEmbed}
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="1.1rem"
+							height="1.1rem"
+							viewBox="0 0 2048 2048"
+							><!-- Icon from Fluent UI MDL2 by Microsoft Corporation - https://github.com/microsoft/fluentui/blob/master/packages/react-icons-mdl2/LICENSE --><path
+								fill="currentColor"
+								d="M2048 1408v128H250l163 163l-90 90L6 1472l317-317l90 90l-163 163zm-413-605l163-163H0V512h1798l-163-163l90-90l317 317l-317 317z"
+							/></svg
+						>
 					</button>
 				</div>
 			</div>

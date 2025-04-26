@@ -107,12 +107,9 @@ Uses GQL queries from the internal Twitch API to retrieve user data and stream p
 - Logging.
 - Maybe move to using classes.
 - Maybe build just flatpak for Linux.
-- Copy watch page content URL.
 - YouTube:
-  - Fix URLs in descriptions, they currently open the URL in the app instead of the default browser, the links are also not formatted properly.
-  - Maybe add tabs for livestreams and shorts.
-  - Add YouTube channel page.
-  - Allow downloading videos (maybe using `yt-dlp`) and thumbnails.
-  - Video searching.
-- Twitch:
-  - Button for adding/removing user from the watch page.
+  - Improve descriptions, links are not formatted properly and has a lot of extra lines.
+  - Maybe add tabs for livestreams and shorts in the feed.
+  - Buttons for downloading videos (maybe using `yt-dlp`) and thumbnails.
+  - YouTube channel page with all videos/shorts/livestreams with pagination.
+  - Input field in feed and page for searching videos/channels.

@@ -24,8 +24,8 @@ try {
 	})
 
 	contextBridge.exposeInMainWorld('user', {
-		add: (platform: Platform, username: string) =>
-			ipcRenderer.invoke('user:add', platform, username),
+		add: (platform: Platform, username?: string, id?: string) =>
+			ipcRenderer.invoke('user:add', platform, username, id),
 		get: (platform: Platform, username?: string, id?: string) =>
 			ipcRenderer.invoke('user:get', platform, username, id),
 		list: (platform?: Platform) => ipcRenderer.invoke('user:list', platform),
