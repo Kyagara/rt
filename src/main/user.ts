@@ -72,19 +72,26 @@ export async function addUser(
 			'INSERT INTO twitch (id, username, display_name, avatar) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET avatar = ?, display_name = ?'
 		)
 
-		stmt.run(user.id, user.username, user.display_name, user.avatar, user.avatar, user.display_name)
+		stmt.run(
+			newUser.id,
+			newUser.username,
+			newUser.display_name,
+			newUser.avatar,
+			newUser.avatar,
+			newUser.display_name
+		)
 	}
 
 	if (platform === Platform.YouTube) {
-		let user: User
+		if (!username && !id) throw new Error('Username or ID not provided')
+
 		if (id) {
-			user = await fetchChannelByID(id)
-		} else {
-			if (!username) throw new Error('Username not provided')
-			user = await fetchChannelByName(username)
+			newUser = await fetchChannelByID(id)
+		} else if (username) {
+			newUser = await fetchChannelByName(username)
 		}
 
-		newUser = user
+		if (!newUser) throw new Error('User not found')
 
 		const stmt = usersDB.prepare(
 			'INSERT INTO youtube (id, username, display_name, avatar) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET avatar = ?, display_name = ?'

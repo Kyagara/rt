@@ -54,6 +54,11 @@
 		return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
 	}
 
+	function copyURL() {
+		navigator.clipboard.writeText(`https://twitch.tv/${username}`)
+		notify('URL copied to clipboard')
+	}
+
 	async function handleSubscription() {
 		try {
 			if (subscribed) {
@@ -61,8 +66,8 @@
 				notify(`Unsubscribed from ${deleted}`)
 				subscribed = false
 			} else {
-				const deleted = await window.user.add(Platform.Twitch, username)
-				notify(`Subscribed to ${deleted.username}`)
+				const user = await window.user.add(Platform.Twitch, username)
+				notify(`Subscribed to ${user.username}`)
 				subscribed = true
 			}
 		} catch (err) {
@@ -153,7 +158,7 @@
 				class="fixed top-8 right-0 z-50 p-2 hover:bg-neutral-700"
 				onclick={toggleChat}
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 2048 2048"
+				<svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" viewBox="0 0 2048 2048"
 					><!-- Icon from Fluent UI MDL2 by Microsoft Corporation - https://github.com/microsoft/fluentui/blob/master/packages/react-icons-mdl2/LICENSE --><path
 						fill="currentColor"
 						d="m1170 146l-879 878l879 878l-121 121l-999-999l999-999zm853 0l-878 878l878 878l-121 121l-999-999l999-999z"
@@ -166,20 +171,45 @@
 	{#if !loading && streamInfo}
 		<div class="flex w-full flex-col gap-4 p-2">
 			<div class="flex items-center justify-between gap-2">
-				<h1 class="text-lg font-bold">{streamInfo.title}</h1>
+				<div class="flex flex-col gap-2">
+					<h1 class="text-lg font-bold">{streamInfo.title}</h1>
 
-				<span class="text-xs">
-					{formatTime(elapsedSeconds)} - {streamInfo.viewer_count} viewers
-				</span>
-			</div>
+					<div class="flex items-center gap-2">
+						<span class="font-semibold">
+							{username}
+						</span>
 
-			<div class="flex">
-				<button
-					class="cursor-pointer border border-white/25 p-1 px-2 hover:bg-neutral-400/50"
-					onclick={async () => await handleSubscription()}
-				>
-					{subscribed ? 'SUBSCRIBED' : 'SUBSCRIBE'}
-				</button>
+						<button
+							class="cursor-pointer border border-white/25 p-1 px-2 hover:bg-red-400/80"
+							onclick={async () => await handleSubscription()}
+						>
+							{subscribed ? 'Remove user' : 'Add user'}
+						</button>
+					</div>
+				</div>
+
+				<div class="flex items-center gap-2">
+					<span class="text-xs">
+						{formatTime(elapsedSeconds)} - {streamInfo.viewer_count} viewers
+					</span>
+
+					<button
+						class="cursor-pointer bg-neutral-800 p-2 hover:bg-neutral-600"
+						title="Copy video URL"
+						onclick={copyURL}
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="1.1rem"
+							height="1.1rem"
+							viewBox="0 0 2048 2048"
+							><!-- Icon from Fluent UI MDL2 by Microsoft Corporation - https://github.com/microsoft/fluentui/blob/master/packages/react-icons-mdl2/LICENSE --><path
+								fill="currentColor"
+								d="M1920 805v1243H640v-384H128V0h859l384 384h128zm-384-37h165l-165-165zM640 384h549L933 128H256v1408h384zm1152 512h-384V512H768v1408h1024z"
+							/></svg
+						>
+					</button>
+				</div>
 			</div>
 
 			<div class="flex items-center gap-2">
