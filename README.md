@@ -33,7 +33,7 @@ A Twitch and YouTube frontend app using Svelte and Electron.
 - Watch content in any of the available resolutions.
 - View Twitch chat with 7tv and BetterTTV emotes.
 - Block ads.
-- Open videos or streams directly in the app using `rt:://` URLs.
+- Open videos or streams directly in the app using `rt://` URLs.
 - Picture-in-picture (except for embedded videos).
 
 ## About
@@ -75,15 +75,10 @@ If you are using extensions like [LibRedirect](https://github.com/libredirect/br
 
 To store users, feeds and emotes, SQLite is used with [better-sqlite3](https://github.com/WiseLibs/better-sqlite3).
 
-Data (databases, window state, etc):
+Data (databases, window state, etc) and logs:
 
 - Windows: `%AppData%/com.rt.app`
 - Linux: `~/.config/com.rt.app`
-
-Logs:
-
-- Windows: `%LocalAppData%/com.rt.app/logs`
-- Linux: `$XDG_DATA_HOME/com.rt.app/logs` or `$HOME/.local/share/com.rt.app/logs`
 
 ### Frontends
 
