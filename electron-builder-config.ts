@@ -51,7 +51,7 @@ const config: Configuration = {
 	},
 
 	linux: {
-		target: ['deb'],
+		target: ['deb', 'rpm'],
 		category: 'Utility'
 	}
 }

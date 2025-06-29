@@ -51,12 +51,20 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: npm run build:win
 
-      - name: Upload Linux installer
+      - name: Upload Linux deb
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: linux
+          name: linux-deb
           path: ./dist/rt-*-linux.deb
+          compression-level: 0
+
+      - name: Upload Linux rpm
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-rpm
+          path: ./dist/rt-*-linux.rpm
           compression-level: 0
 
       - name: Upload macOS installer
