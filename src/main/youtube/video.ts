@@ -103,9 +103,7 @@ export async function fetchVideo(
 	const video: WatchPageVideo = {
 		id: videoID,
 		isLive,
-		dash: isLive
-			? undefined
-			: await videoInfo.toDash(undefined, undefined, { captions_format: 'vtt' }),
+		dash: isLive ? undefined : await videoInfo.toDash({ captions_format: 'vtt' }),
 		live,
 		info,
 		channel
