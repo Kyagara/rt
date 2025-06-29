@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte'
 
 	import 'simplebar'
-	import 'simplebar/dist/simplebar.css'
+	import 'simplebar/dist/simplebar.min.css'
 
 	import Notification from '$lib/components/Notification.svelte'
 	import Sidebar from '$lib/components/Sidebar.svelte'

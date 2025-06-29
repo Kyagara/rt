@@ -45,7 +45,7 @@ Tested on Windows and Ubuntu. Not tested on macOS.
 > These are files from the latest successful build, they do not require a GitHub account to download.
 
 - [Windows](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/windows.zip)
-- [Linux](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/linux.zip)
+- Linux [deb](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/linux-deb.zip), [rpm](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/linux-rpm.zip)
 - [macOS](https://nightly.link/Kyagara/rt/workflows/build.yaml/main/mac.zip)
 
 You can check for possible older artifacts [here](https://github.com/Kyagara/rt/actions).
@@ -102,6 +102,8 @@ Uses GQL queries from the internal Twitch API to retrieve user data and stream p
 - Logging.
 - Maybe move to using classes.
 - Maybe build just flatpak for Linux.
+- Twitch:
+  - Streams sometimes stopping, usually occurs around 10 minutes of playback.
 - YouTube:
   - Improve descriptions, links are not formatted properly and has a lot of extra lines.
   - Maybe add tabs for livestreams and shorts in the feed.
